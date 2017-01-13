@@ -14,6 +14,7 @@
     <modules>
         <module>ccg-curator-server</module>
         <module>ccg-curator-client</module>
+        <module>ccg-curator-common</module>
     </modules>
 
     <properties>

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.github.hronom.ccg.curator";
+option java_outer_classname = "CcgCuratorProto";
+//option java_generic_services = true;
+option objc_class_prefix = "HLW";
+
+package ccgcurator;
+
+service CcgCurator {
+    rpc SubscribeOnCardsShowdown (SubscribeOnCardsShowdownRequest) returns (stream CardRevealedReply) {
+    }
+
+    rpc SubscribeOnThrowingDice (SubscribeOnThrowingDiceRequest) returns (stream DiceThrowedReply) {
+    }
+}
+
+message SubscribeOnCardsShowdownRequest {
+    string playerName = 1;
+}
+
+message CardRevealedReply {
+    string playerName = 1;
+    string cardName = 2;
+}
+
+message SubscribeOnThrowingDiceRequest {
+    string playerName = 1;
+}
+
+message DiceThrowedReply {
+    string playerName = 1;
+    string diceValue = 2;
+}
