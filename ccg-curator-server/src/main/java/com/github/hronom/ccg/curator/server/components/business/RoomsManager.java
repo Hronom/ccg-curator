@@ -1,7 +1,10 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
+import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
@@ -20,8 +23,8 @@ public class RoomsManager {
 
     private final ConcurrentHashMap<String, Room> roomsByName = new ConcurrentHashMap<>();
 
-    public RoomsManager() throws Exception {
-    }
+    @Autowired
+    private MainServiceManager mainServiceManager;
 
     @PreDestroy
     public void cleanUp() throws Exception {
@@ -46,6 +49,6 @@ public class RoomsManager {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     private Room room(String name) {
-        return new Room(name);
+        return new Room(mainServiceManager, name);
     }
 }

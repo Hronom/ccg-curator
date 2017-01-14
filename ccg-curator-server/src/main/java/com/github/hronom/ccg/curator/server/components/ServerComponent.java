@@ -23,8 +23,8 @@ public class ServerComponent {
     private Server server;
 
     @Autowired
-    public ServerComponent(ServiceComponent serviceComponent) throws Exception {
-        start(serviceComponent);
+    public ServerComponent(MainServiceManager mainServiceManager) throws Exception {
+        start(mainServiceManager);
     }
 
     @PreDestroy
@@ -32,10 +32,10 @@ public class ServerComponent {
         stop();
     }
 
-    private void start(ServiceComponent serviceComponent) throws IOException {
+    private void start(MainServiceManager mainServiceManager) throws IOException {
         server = ServerBuilder
             .forPort(serverPort)
-            .addService(serviceComponent)
+            .addService(mainServiceManager)
             .build()
             .start();
         logger.info("Server started, listening on " + serverPort);

@@ -11,7 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-public class CcgOrganizerClientApp extends Application {
+public class CcgCuratorClientApp extends Application {
     private static final Logger logger = LogManager.getLogger();
 
     private final String appTitle = "CCG organizer";

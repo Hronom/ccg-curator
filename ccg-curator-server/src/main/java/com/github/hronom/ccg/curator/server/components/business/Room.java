@@ -1,5 +1,7 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
+import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -7,6 +9,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -23,7 +27,10 @@ public class Room {
 
     private final ConcurrentHashMap<Player, String> submitedCards = new ConcurrentHashMap<>();
 
-    public Room(String nameArg) {
+    private final MainServiceManager mainServiceManager;
+
+    public Room(MainServiceManager mainServiceManagerArg, String nameArg) {
+        mainServiceManager = mainServiceManagerArg;
         name = nameArg;
     }
 
@@ -51,17 +58,28 @@ public class Room {
     public void submitCard(Player player, String cardName) {
         if (!submitedCards.containsKey(player)) {
             submitedCards.put(player, cardName);
-            checkIsAllSubmited();
+            checkIsAllSubmitted();
         }
     }
 
-    private void checkIsAllSubmited() {
+    private void checkIsAllSubmitted() {
+        // Check is all players submit the card.
         for (Player player : players) {
             if (!submitedCards.containsKey(player)) {
                 return;
             }
         }
 
-        // TODO
+        // Send notification.
+        for (Map.Entry<Player, String> entry : submitedCards.entrySet()) {
+            for (Player playerToSend : players) {
+                if (!Objects.equals(entry.getKey(), playerToSend)) {
+                    mainServiceManager
+                        .sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
+        submitedCards.clear();
     }
 }

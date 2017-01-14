@@ -60,7 +60,7 @@ message SubmitCardRequest {
 }
 
 message SubmitCardReply {
-    bool setted = 1;
+    bool submited = 1;
 }
 
 message SubscribeOnThrowingDiceRequest {

@@ -1,10 +1,14 @@
 package com.github.hronom.ccg.curator.server.components;
 
+import com.github.hronom.ccg.curator.CardRevealedReply;
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
 import com.github.hronom.ccg.curator.JoinRoomReply;
 import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
 import com.github.hronom.ccg.curator.LoginRequest;
+import com.github.hronom.ccg.curator.SubmitCardReply;
+import com.github.hronom.ccg.curator.SubmitCardRequest;
+import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
 import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
@@ -18,14 +22,22 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PreDestroy;
+
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
+public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     private static final Logger logger = LogManager.getLogger();
+
+    private final ConcurrentHashMap<Player, StreamObserver<CardRevealedReply>>
+        cardsShowdownMap
+        = new ConcurrentHashMap<>();
 
     @Autowired
     private MainManager mainManager;
@@ -35,6 +47,13 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
 
     @Autowired
     private RoomsManager roomsManager;
+
+    @PreDestroy
+    public void cleanUp() throws Exception {
+        for (StreamObserver<CardRevealedReply> streamObserver : cardsShowdownMap.values()) {
+            streamObserver.onCompleted();
+        }
+    }
 
     @Override
     public StreamObserver<LoginRequest> login(StreamObserver<LoginReply> responseObserver) {
@@ -84,27 +103,44 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
         responseObserver.onCompleted();
     }
 
-    /*@Override
-    public void setCard(SetCardRequest req, StreamObserver<SetCardReply> responseObserver) {
-        SetCardReply reply = SetCardReply.newBuilder().setSetted(true).build();
-        responseObserver.onNext(reply);
+    @Override
+    public void subscribeOnCardsShowdown(SubscribeOnCardsShowdownRequest req, StreamObserver<CardRevealedReply> responseObserver) {
+        Player player = playersManager.getPlayer(req.getPlayerId());
+        if (player != null) {
+            cardsShowdownMap.put(player, responseObserver);
+        }
+
+    }
+
+    @Override
+    public void submitCard(SubmitCardRequest req, StreamObserver<SubmitCardReply> responseObserver) {
+        Player player = playersManager.getPlayer(req.getPlayerId());
+        if (player != null) {
+            Room room = mainManager.getRoom(player);
+            room.submitCard(player, req.getCardName());
+            SubmitCardReply reply = SubmitCardReply.newBuilder().setSubmited(true).build();
+            responseObserver.onNext(reply);
+        } else {
+            SubmitCardReply reply = SubmitCardReply.newBuilder().setSubmited(false).build();
+            responseObserver.onNext(reply);
+        }
         responseObserver.onCompleted();
     }
 
-    @Override
-    public void subscribeOnThrowingDice(SubscribeOnThrowingDiceRequest req, StreamObserver<DiceThrowedReply> responseObserver) {
-        while (true) {
-            DiceThrowedReply reply =
-                DiceThrowedReply
+    public void sendShowdownCard(Player sendToPlayer, Player cardOwner, String cardName) {
+        StreamObserver<CardRevealedReply> responseObserver = cardsShowdownMap.get(sendToPlayer);
+        if (responseObserver != null) {
+            CardRevealedReply reply =
+                CardRevealedReply
                     .newBuilder()
-                    .setPlayerName("test")
-                    .setDiceValue(String.valueOf(UUID.randomUUID())).build();
+                    .setPlayerName(cardOwner.getName())
+                    .setCardName(cardName)
+                    .build();
             responseObserver.onNext(reply);
-            //responseObserver.onCompleted();
         }
     }
 
-    @Override
+    /*@Override
     public void throwDice(ThrowDiceRequest req, StreamObserver<ThrowDiceReply> responseObserver) {
         ThrowDiceReply reply = ThrowDiceReply.newBuilder().setDiceValue("1").build();
         responseObserver.onNext(reply);
