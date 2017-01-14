@@ -1,6 +1,5 @@
 package com.github.hronom.ccg.curator.server.configs;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,7 +19,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
             .pathMapping("/")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("com.github.hronom.ccg.organizer.server"))
+            .apis(RequestHandlerSelectors.basePackage("com.github.hronom.ccg.curator.server"))
             .paths(PathSelectors.any())
             .build()
             .apiInfo(apiInfo());
@@ -28,12 +27,13 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-            "CCG Organizer server",
-            "CCG Organizer server",
-            "API 1.0.1",
+            "CCG Curator server",
+            "CCG Curator server",
+            "API 1.0.0",
             "",
-            new Contact("info", "", "hronom@gmail.com"),
+            new Contact("Hronom", "", "hronom@gmail.com"),
             "License",
-            "");
+            ""
+        );
     }
 }

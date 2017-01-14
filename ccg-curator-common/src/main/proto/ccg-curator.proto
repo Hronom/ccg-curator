@@ -4,11 +4,17 @@ option java_multiple_files = true;
 option java_package = "com.github.hronom.ccg.curator";
 option java_outer_classname = "CcgCuratorProto";
 //option java_generic_services = true;
-option objc_class_prefix = "HLW";
+//option objc_class_prefix = "CCGC";
 
 package ccgcurator;
 
 service CcgCurator {
+    rpc Login (stream LoginRequest) returns (stream LoginReply) {
+    }
+
+    rpc JoinRoom (JoinRoomRequest) returns (JoinRoomReply) {
+    }
+
     rpc SubscribeOnCardsShowdown (SubscribeOnCardsShowdownRequest) returns (stream CardRevealedReply) {
     }
 
@@ -22,8 +28,25 @@ service CcgCurator {
     }
 }
 
-message SubscribeOnCardsShowdownRequest {
+message LoginRequest {
     string playerName = 1;
+}
+
+message LoginReply {
+    int64 playerId = 1;
+}
+
+message JoinRoomRequest {
+    int64 playerId = 1;
+    string roomName = 2;
+}
+
+message JoinRoomReply {
+    bool joined = 1;
+}
+
+message SubscribeOnCardsShowdownRequest {
+    int64 playerId = 1;
 }
 
 message CardRevealedReply {
@@ -32,7 +55,7 @@ message CardRevealedReply {
 }
 
 message SetCardRequest {
-    string playerName = 1;
+    int64 playerId = 1;
     string cardName = 2;
 }
 
@@ -41,7 +64,7 @@ message SetCardReply {
 }
 
 message SubscribeOnThrowingDiceRequest {
-    string playerName = 1;
+    int64 playerId = 1;
 }
 
 message DiceThrowedReply {
@@ -50,7 +73,7 @@ message DiceThrowedReply {
 }
 
 message ThrowDiceRequest {
-    string playerName = 1;
+    int64 playerId = 1;
 }
 
 message ThrowDiceReply {

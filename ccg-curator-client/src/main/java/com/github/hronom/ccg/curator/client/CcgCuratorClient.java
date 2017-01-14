@@ -1,24 +1,24 @@
 package com.github.hronom.ccg.curator.client;
 
-import com.github.hronom.ccg.curator.CardRevealedReply;
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
-import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
+import com.github.hronom.ccg.curator.LoginReply;
+import com.github.hronom.ccg.curator.LoginRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 
 public class CcgCuratorClient {
     private static final Logger logger = LogManager.getLogger();
 
     private final ManagedChannel channel;
     private final CcgCuratorGrpc.CcgCuratorBlockingStub blockingStub;
+    private final CcgCuratorGrpc.CcgCuratorStub stub;
 
     /** Construct client connecting to HelloWorld server at {@code host:port}. */
     public CcgCuratorClient(String host, int port) {
@@ -32,6 +32,7 @@ public class CcgCuratorClient {
     CcgCuratorClient(ManagedChannelBuilder<?> channelBuilder) {
         channel = channelBuilder.build();
         blockingStub = CcgCuratorGrpc.newBlockingStub(channel);
+        stub = CcgCuratorGrpc.newStub(channel);
     }
 
     public void shutdown() throws InterruptedException {
@@ -39,14 +40,32 @@ public class CcgCuratorClient {
     }
 
     /** Say hello to server. */
-    public void greet(String name) {
+    public void greet(String name) throws InterruptedException {
         logger.info("Will try to greet " + name + " ...");
-        SubscribeOnCardsShowdownRequest request = SubscribeOnCardsShowdownRequest.newBuilder().setPlayerName(name).build();
-        Iterator<CardRevealedReply> response = blockingStub.subscribeOnCardsShowdown(request);
-        while (response.hasNext()) {
-            CardRevealedReply reply = response.next();
-            logger.info("Greeting: " + reply.getPlayerName() + " " + reply.getCardName());
-        }
+        StreamObserver<LoginReply> streamObserver = new StreamObserver<LoginReply>() {
+            @Override
+            public void onNext(LoginReply value) {
+                //LoginRequest request = LoginRequest.newBuilder().setPlayerName("Hronom").build();
+                System.out.println(value.toString());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                t.printStackTrace();
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Complete");
+            }
+        };
+
+        StreamObserver<LoginRequest> requests = stub.login(streamObserver);
+        LoginRequest request = LoginRequest.newBuilder().setPlayerName("Hronom").build();
+        requests.onNext(request);
+
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        //requests.onCompleted();
     }
 
     /**

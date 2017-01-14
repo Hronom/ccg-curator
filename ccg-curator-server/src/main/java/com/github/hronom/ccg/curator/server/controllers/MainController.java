@@ -1,16 +1,19 @@
 package com.github.hronom.ccg.curator.server.controllers;
 
+import com.github.hronom.ccg.curator.server.components.business.Player;
+import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -21,8 +24,7 @@ public class MainController {
     private static final Logger logger = LogManager.getLogger();
 
     @Autowired
-    public MainController() {
-    }
+    private PlayersManager playersManager;
 
     @RequestMapping(value = "/", method = {RequestMethod.GET})
     @ApiOperation(value = "Check status.")
@@ -33,58 +35,17 @@ public class MainController {
     })
     @ResponseBody
     public ResponseEntity<String> status() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello");
+        return ResponseEntity.status(HttpStatus.OK).body("Good");
     }
 
-    @RequestMapping(value = "/subscriptions", method = {RequestMethod.POST})
-    @ApiOperation(value = "Add subscriptions with specified criterias.")
+    @RequestMapping(value = "/players", method = {RequestMethod.GET})
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Successful request."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 404, message = "Page not found."),
     })
     @ResponseBody
-    public ResponseEntity<String> postSubscription(
-        @RequestParam(value = "followUsersScreenNames", required = false) String[] followUsersScreenNames,
-        @RequestParam(value = "mentionedUsersScreenNames", required = false) String[] mentionedUsersScreenNames,
-        @RequestParam(value = "hashtags", required = false) String[] hashtags
-    ) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello");
-    }
-
-    @RequestMapping(value = "/subscriptions/{subscription-id}", method = {RequestMethod.DELETE})
-    @ApiOperation(value = "Delete subscriptions.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successful request."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 404, message = "Page not found."),
-    })
-    @ResponseBody
-    public ResponseEntity<String> deleteSubscription(@PathVariable("subscription-id") String id) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello");
-    }
-
-    @RequestMapping(value = "/subscriptions", method = {RequestMethod.DELETE})
-    @ApiOperation(value = "Stop all subscriptions.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successful request."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 404, message = "Page not found."),
-    })
-    @ResponseBody
-    public ResponseEntity deleteSubscriptions() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello");
-    }
-
-    @RequestMapping(value = "/subscriptions", method = {RequestMethod.GET})
-    @ApiOperation(value = "Get subscriptions.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successful request."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 404, message = "Page not found."),
-    })
-    @ResponseBody
-    public ResponseEntity<String> getSubscriptions() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello");
+    public ResponseEntity<Collection<Player>> getPlayers() {
+        return ResponseEntity.status(HttpStatus.OK).body(playersManager.getPlayers());
     }
 }
