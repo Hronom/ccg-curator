@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PreDestroy;
@@ -19,7 +21,6 @@ public class RoomsManager {
     private final ConcurrentHashMap<String, Room> roomsByName = new ConcurrentHashMap<>();
 
     public RoomsManager() throws Exception {
-        System.out.println();
     }
 
     @PreDestroy
@@ -27,7 +28,19 @@ public class RoomsManager {
     }
 
     public Room getRoom(String name) {
-        return roomsByName.putIfAbsent(name, room(name));
+        return roomsByName.computeIfAbsent(name, k -> room(name));
+    }
+
+    public Collection<Room> getRooms() {
+        return roomsByName.values();
+    }
+
+    public void removeRoom(Room roomArg) {
+        roomsByName.forEach((name, room) -> {
+            if (Objects.equals(roomArg, room)) {
+                roomsByName.remove(name, room);
+            }
+        });
     }
 
     @Bean

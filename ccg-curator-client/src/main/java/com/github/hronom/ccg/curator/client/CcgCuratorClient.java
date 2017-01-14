@@ -1,6 +1,8 @@
 package com.github.hronom.ccg.curator.client;
 
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
+import com.github.hronom.ccg.curator.JoinRoomReply;
+import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
 import com.github.hronom.ccg.curator.LoginRequest;
 
@@ -39,14 +41,16 @@ public class CcgCuratorClient {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    /** Say hello to server. */
-    public void greet(String name) throws InterruptedException {
-        logger.info("Will try to greet " + name + " ...");
+    public void run() throws InterruptedException {
+        String playerName = "Hronom";
+        final long[] playerId = {0};
+        logger.info("Login as " + playerName + "...");
         StreamObserver<LoginReply> streamObserver = new StreamObserver<LoginReply>() {
             @Override
             public void onNext(LoginReply value) {
                 //LoginRequest request = LoginRequest.newBuilder().setPlayerName("Hronom").build();
                 System.out.println(value.toString());
+                playerId[0] = value.getPlayerId();
             }
 
             @Override
@@ -61,10 +65,20 @@ public class CcgCuratorClient {
         };
 
         StreamObserver<LoginRequest> requests = stub.login(streamObserver);
-        LoginRequest request = LoginRequest.newBuilder().setPlayerName("Hronom").build();
+        LoginRequest request = LoginRequest.newBuilder().setPlayerName(playerName).build();
         requests.onNext(request);
 
         Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
+        JoinRoomRequest joinRoomRequest =
+            JoinRoomRequest
+                .newBuilder()
+                .setPlayerId(playerId[0])
+                .setRoomName("Test room")
+                .build();
+        JoinRoomReply joinRoomReply = blockingStub.joinRoom(joinRoomRequest);
+        System.out.println("Joined: " + joinRoomReply.getJoined());
+
         //requests.onCompleted();
     }
 
@@ -75,12 +89,7 @@ public class CcgCuratorClient {
     public static void main(String[] args) throws Exception {
         CcgCuratorClient client = new CcgCuratorClient("localhost", 50051);
         try {
-      /* Access a service running on the local machine on port 50051 */
-            String user = "world";
-            if (args.length > 0) {
-                user = args[0]; /* Use the arg as the name to greet if provided */
-            }
-            client.greet(user);
+            client.run();
         } finally {
             client.shutdown();
         }

@@ -1,10 +1,14 @@
 package com.github.hronom.ccg.curator.server.components;
 
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
+import com.github.hronom.ccg.curator.JoinRoomReply;
+import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
 import com.github.hronom.ccg.curator.LoginRequest;
+import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
+import com.github.hronom.ccg.curator.server.components.business.Room;
 import com.github.hronom.ccg.curator.server.components.business.RoomsManager;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +28,9 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
     private static final Logger logger = LogManager.getLogger();
 
     @Autowired
+    private MainManager mainManager;
+
+    @Autowired
     private PlayersManager playersManager;
 
     @Autowired
@@ -31,31 +38,13 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
 
     @Override
     public StreamObserver<LoginRequest> login(StreamObserver<LoginReply> responseObserver) {
-        /*while (true) {
-            LoginReply reply =
-                LoginReply
-                    .newBuilder()
-                    .setPlayerId(playersManager.createPlayer(req.getPlayerName()).getId())
-                    .build();
-            responseObserver.onNext(reply);
-            try {
-                Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            //responseObserver.onCompleted();
-        }*/
-
         return new StreamObserver<LoginRequest>() {
-            private LoginReply loginReply;
+            private Player player;
 
             @Override
             public void onNext(LoginRequest value) {
-                loginReply =
-                    LoginReply
-                        .newBuilder()
-                        .setPlayerId(playersManager.createPlayer(value.getPlayerName()).getId())
-                        .build();
+                player = playersManager.createPlayer(value.getPlayerName());
+                LoginReply loginReply = LoginReply.newBuilder().setPlayerId(player.getId()).build();
                 responseObserver.onNext(loginReply);
             }
 
@@ -64,8 +53,8 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
                 if (t instanceof StatusException) {
                     StatusException statusException = (StatusException) t;
                     if (statusException.getStatus() == Status.CANCELLED) {
-                        Player player = playersManager.getPlayer(loginReply.getPlayerId());
                         if (player != null) {
+                            mainManager.leaveRooms(player);
                             playersManager.removePlayer(player);
                         }
                     }
@@ -80,25 +69,22 @@ public class ServiceComponent extends CcgCuratorGrpc.CcgCuratorImplBase {
         };
     }
 
-    /*@Override
-    public void subscribeOnCardsShowdown(SubscribeOnCardsShowdownRequest req, StreamObserver<CardRevealedReply> responseObserver) {
-        while (true) {
-            CardRevealedReply reply =
-                CardRevealedReply
-                    .newBuilder()
-                    .setPlayerName("test")
-                    .setCardName(String.valueOf(UUID.randomUUID())).build();
+    @Override
+    public void joinRoom(JoinRoomRequest req, StreamObserver<JoinRoomReply> responseObserver) {
+        Player player = playersManager.getPlayer(req.getPlayerId());
+        if (player != null) {
+            Room room = roomsManager.getRoom(req.getRoomName());
+            mainManager.joinRoom(player, room);
+            JoinRoomReply reply = JoinRoomReply.newBuilder().setJoined(true).build();
             responseObserver.onNext(reply);
-            try {
-                Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            //responseObserver.onCompleted();
+        } else {
+            JoinRoomReply reply = JoinRoomReply.newBuilder().setJoined(false).build();
+            responseObserver.onNext(reply);
         }
+        responseObserver.onCompleted();
     }
 
-    @Override
+    /*@Override
     public void setCard(SetCardRequest req, StreamObserver<SetCardReply> responseObserver) {
         SetCardReply reply = SetCardReply.newBuilder().setSetted(true).build();
         responseObserver.onNext(reply);

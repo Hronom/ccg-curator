@@ -18,7 +18,7 @@ service CcgCurator {
     rpc SubscribeOnCardsShowdown (SubscribeOnCardsShowdownRequest) returns (stream CardRevealedReply) {
     }
 
-    rpc SetCard (SetCardRequest) returns (SetCardReply) {
+    rpc SubmitCard (SubmitCardRequest) returns (SubmitCardReply) {
     }
 
     rpc SubscribeOnThrowingDice (SubscribeOnThrowingDiceRequest) returns (stream DiceThrowedReply) {
@@ -54,12 +54,12 @@ message CardRevealedReply {
     string cardName = 2;
 }
 
-message SetCardRequest {
+message SubmitCardRequest {
     int64 playerId = 1;
     string cardName = 2;
 }
 
-message SetCardReply {
+message SubmitCardReply {
     bool setted = 1;
 }
 

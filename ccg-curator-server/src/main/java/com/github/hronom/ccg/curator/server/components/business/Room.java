@@ -6,6 +6,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -31,8 +32,20 @@ public class Room {
         System.out.println("destroyed");
     }
 
+    public String getName() {
+        return name;
+    }
+
     public void addPlayer(Player player) {
         players.add(player);
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player);
+    }
+
+    public Collection<Player> getPlayers() {
+        return players;
     }
 
     public void submitCard(Player player, String cardName) {

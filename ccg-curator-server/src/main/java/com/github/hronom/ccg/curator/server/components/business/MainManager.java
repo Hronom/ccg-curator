@@ -2,7 +2,6 @@ package com.github.hronom.ccg.curator.server.components.business;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -18,22 +17,15 @@ import javax.annotation.PreDestroy;
 public class MainManager {
     private static final Logger logger = LogManager.getLogger();
 
-    @Autowired
-    private ObjectFactory<Room> roomComponentObjectFactory;
-
     private final AtomicLong playerIdGenerator = new AtomicLong();
 
-    private ConcurrentHashMap<Long, Room> roomsByPlayerId = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Player, Room> roomsByPlayerId = new ConcurrentHashMap<>();
 
     @Autowired
     private PlayersManager playersManager;
 
     @Autowired
     private RoomsManager roomsManager;
-
-    public MainManager() throws Exception {
-        System.out.println();
-    }
 
     @PreDestroy
     public void cleanUp() throws Exception {
@@ -43,14 +35,28 @@ public class MainManager {
         return playersManager.createPlayer(playerName).getId();
     }
 
-    public void joinRoom(long playerId, String roomName) {
-        Player player = playersManager.getPlayer(playerId);
-        Room room = roomsManager.getRoom(roomName);
+    public void joinRoom(Player player, Room room) {
         room.addPlayer(player);
-        roomsByPlayerId.put(playerId, room);
+        roomsByPlayerId.put(player, room);
     }
 
-    public Room getRoom(long playerId) {
-        return roomsByPlayerId.get(playerId);
+    public void leaveRoom(Player player, Room room) {
+        room.removePlayer(player);
+        roomsByPlayerId.remove(player, room);
+    }
+
+    public void leaveRooms(Player player) {
+        Room room = roomsByPlayerId.get(player);
+        if (room != null) {
+            room.removePlayer(player);
+            roomsByPlayerId.remove(player, room);
+            if (room.getPlayers().isEmpty()) {
+                roomsManager.removeRoom(room);
+            }
+        }
+    }
+
+    public Room getRoom(Player player) {
+        return roomsByPlayerId.get(player);
     }
 }
