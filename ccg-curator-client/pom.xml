@@ -26,11 +26,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javafx</groupId>
-            <artifactId>jfxrt</artifactId>
-            <version>${java.version}</version>
-            <scope>system</scope>
-            <systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
+            <groupId>org.wildfly.swarm</groupId>
+            <artifactId>javafx</artifactId>
+            <version>2017.1.1</version>
         </dependency>
 
         <!-- Log4j -->

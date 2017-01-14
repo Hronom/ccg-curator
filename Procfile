@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar ccg-curator-server/bin/ccg-curator-server-1.0.0.jar
