@@ -15,6 +15,7 @@
     <url>http://maven.apache.org</url>
 
     <dependencies>
+        <!-- GRPC -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>

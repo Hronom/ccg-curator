@@ -69,44 +69,6 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        /*apProperties.getChildren().clear();
-
-        miNew.setOnAction(event -> {
-        });
-
-        miOpen.setOnAction(event -> {
-        });
-
-        miSave.setOnAction(event -> {
-        });
-
-        miPrint.setOnAction(event -> {
-        });
-
-        miPrintSeparately.setOnAction(event -> {
-        });
-
-        miClose.setOnAction(event -> Platform.exit());
-
-        miUndo.setOnAction(event -> {
-        });
-
-        miAbout.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("About");
-                alert.setHeaderText("Information");
-                WebView webView = new WebView();
-                webView.getEngine().loadContent("<html>" + "Authors:" +
-                                                "<p>Eugene Tenkaev <a href=\"mailto:hronom@gmail.com\" target=\"_top\">hronom@gmail.com</a></p>" +
-                                                "</html>");
-                webView.setPrefSize(450, 100);
-                alert.getDialogPane().setContent(webView);
-                alert.show();
-            }
-        });*/
-
         bEnter.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -218,7 +180,9 @@ public class MainController implements Initializable {
             }
         });
 
-        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("localhost", 50051)
+        ManagedChannelBuilder<?> channelBuilder =
+            ManagedChannelBuilder
+                .forAddress("localhost", 50051)
             // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
             // needing certificates.
             .usePlaintext(true);
