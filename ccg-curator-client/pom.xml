@@ -25,12 +25,6 @@
             <version>1.0.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.wildfly.swarm</groupId>
-            <artifactId>javafx</artifactId>
-            <version>2017.1.1</version>
-        </dependency>
-
         <!-- Log4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
