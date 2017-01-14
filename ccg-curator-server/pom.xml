@@ -155,7 +155,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
                             <classpathLayoutType>simple</classpathLayoutType>
-                            <mainClass>com.github.hronom.ccg.curator.server.App</mainClass>
+                            <mainClass>com.github.hronom.ccg.curator.server.CcgCuratorServer</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Version>${project.version}</Version>
