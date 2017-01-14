@@ -31,20 +31,13 @@
 
 package com.github.hronom.ccg.curator.server;
 
-import com.github.hronom.ccg.curator.CardRevealedReply;
-import com.github.hronom.ccg.curator.CcgCuratorGrpc;
-import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
 
 /**
  * Server that manages startup/shutdown of a {@code Greeter} server.
@@ -92,26 +85,5 @@ public class CcgCuratorServer {
         final CcgCuratorServer server = new CcgCuratorServer();
         server.start();
         server.blockUntilShutdown();
-    }
-
-    static class CcgCuratorImpl extends CcgCuratorGrpc.CcgCuratorImplBase {
-
-        @Override
-        public void subscribeOnCardsShowdown(SubscribeOnCardsShowdownRequest req, StreamObserver<CardRevealedReply> responseObserver) {
-            while (true) {
-                CardRevealedReply reply =
-                    CardRevealedReply
-                        .newBuilder()
-                        .setPlayerName(req.getPlayerName())
-                        .setCardName(String.valueOf(UUID.randomUUID())).build();
-                responseObserver.onNext(reply);
-                try {
-                    Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                //responseObserver.onCompleted();
-            }
-        }
     }
 }

@@ -12,7 +12,13 @@ service CcgCurator {
     rpc SubscribeOnCardsShowdown (SubscribeOnCardsShowdownRequest) returns (stream CardRevealedReply) {
     }
 
+    rpc SetCard (SetCardRequest) returns (SetCardReply) {
+    }
+
     rpc SubscribeOnThrowingDice (SubscribeOnThrowingDiceRequest) returns (stream DiceThrowedReply) {
+    }
+
+    rpc ThrowDice (ThrowDiceRequest) returns (ThrowDiceReply) {
     }
 }
 
@@ -25,6 +31,15 @@ message CardRevealedReply {
     string cardName = 2;
 }
 
+message SetCardRequest {
+    string playerName = 1;
+    string cardName = 2;
+}
+
+message SetCardReply {
+    bool setted = 1;
+}
+
 message SubscribeOnThrowingDiceRequest {
     string playerName = 1;
 }
@@ -32,4 +47,12 @@ message SubscribeOnThrowingDiceRequest {
 message DiceThrowedReply {
     string playerName = 1;
     string diceValue = 2;
+}
+
+message ThrowDiceRequest {
+    string playerName = 1;
+}
+
+message ThrowDiceReply {
+    string diceValue = 1;
 }
