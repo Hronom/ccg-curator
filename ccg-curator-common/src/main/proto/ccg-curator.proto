@@ -80,8 +80,9 @@ message DiceThrowedReply {
 
 message ThrowDiceRequest {
     int64 playerId = 1;
+    repeated string diceValues = 2;
 }
 
 message ThrowDiceReply {
-    string diceValue = 1;
+    bool throwed = 1;
 }

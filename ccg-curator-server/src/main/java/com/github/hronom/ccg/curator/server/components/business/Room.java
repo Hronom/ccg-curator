@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -29,6 +30,8 @@ public class Room {
     private final ConcurrentHashMap<Player, String> submitedCards = new ConcurrentHashMap<>();
 
     private final MainServiceManager mainServiceManager;
+
+    private final Random random = new Random();
 
     public Room(MainServiceManager mainServiceManagerArg, String nameArg, String passwordArg) {
         mainServiceManager = mainServiceManagerArg;
@@ -65,6 +68,14 @@ public class Room {
         if (!submitedCards.containsKey(player)) {
             submitedCards.put(player, cardName);
             checkIsAllSubmitted();
+        }
+    }
+
+    public void throwDice(Player player, String[] diceValues) {
+        int randomPos = random.nextInt(diceValues.length);
+        // Send notification.
+        for (Player playerToSend : players) {
+            mainServiceManager.sendThrowDice(playerToSend, player, diceValues[randomPos]);
         }
     }
 

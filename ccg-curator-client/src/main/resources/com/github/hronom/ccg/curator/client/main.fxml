@@ -38,11 +38,9 @@
       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя выбранной карты" GridPane.rowIndex="6" />
       <TextField fx:id="tfCardName" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
       <Button fx:id="bSubmitCard" mnemonicParsing="false" text="Выбрать" GridPane.columnIndex="2" GridPane.hgrow="NEVER" GridPane.rowIndex="6" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Максимальное значение кубика" GridPane.rowIndex="8" />
-      <TextField text="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Минимальное значение кубика" GridPane.rowIndex="7" />
-      <TextField text="6" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
-      <Button fx:id="bThrowDice" mnemonicParsing="false" text="Кинуть кубик" GridPane.columnIndex="2" GridPane.rowIndex="7" GridPane.rowSpan="2" />
+      <TextField fx:id="tfDiceValues" text="1,2,3,4,5,6" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Значения кубика" GridPane.rowIndex="7" />
+      <Button fx:id="bThrowDice" mnemonicParsing="false" text="Кинуть кубик" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
       <TextArea fx:id="tfOutput" editable="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="9" GridPane.vgrow="ALWAYS" />
    </children>
 </GridPane>

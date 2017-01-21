@@ -2,6 +2,7 @@ package com.github.hronom.ccg.curator.server.components;
 
 import com.github.hronom.ccg.curator.CardRevealedReply;
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
+import com.github.hronom.ccg.curator.DiceThrowedReply;
 import com.github.hronom.ccg.curator.JoinRoomReply;
 import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
@@ -9,6 +10,9 @@ import com.github.hronom.ccg.curator.LoginRequest;
 import com.github.hronom.ccg.curator.SubmitCardReply;
 import com.github.hronom.ccg.curator.SubmitCardRequest;
 import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
+import com.github.hronom.ccg.curator.SubscribeOnThrowingDiceRequest;
+import com.github.hronom.ccg.curator.ThrowDiceReply;
+import com.github.hronom.ccg.curator.ThrowDiceRequest;
 import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
@@ -39,6 +43,9 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     private final ConcurrentHashMap<Player, StreamObserver<CardRevealedReply>>
         cardsShowdownMap
         = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Player, StreamObserver<DiceThrowedReply>>
+        throwingDiceMap
+        = new ConcurrentHashMap<>();
 
     @Autowired
     private MainManager mainManager;
@@ -52,6 +59,9 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     @PreDestroy
     public void cleanUp() throws Exception {
         for (StreamObserver<CardRevealedReply> streamObserver : cardsShowdownMap.values()) {
+            streamObserver.onCompleted();
+        }
+        for (StreamObserver<DiceThrowedReply> streamObserver : throwingDiceMap.values()) {
             streamObserver.onCompleted();
         }
     }
@@ -115,7 +125,14 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
         if (player != null) {
             cardsShowdownMap.put(player, responseObserver);
         }
+    }
 
+    @Override
+    public void subscribeOnThrowingDice(SubscribeOnThrowingDiceRequest req, StreamObserver<DiceThrowedReply> responseObserver) {
+        Player player = playersManager.getPlayer(req.getPlayerId());
+        if (player != null) {
+            throwingDiceMap.put(player, responseObserver);
+        }
     }
 
     @Override
@@ -128,6 +145,21 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
             responseObserver.onNext(reply);
         } else {
             SubmitCardReply reply = SubmitCardReply.newBuilder().setSubmited(false).build();
+            responseObserver.onNext(reply);
+        }
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void throwDice(ThrowDiceRequest req, StreamObserver<ThrowDiceReply> responseObserver) {
+        Player player = playersManager.getPlayer(req.getPlayerId());
+        if (player != null) {
+            Room room = mainManager.getRoom(player);
+            room.throwDice(player, req.getDiceValuesList().toArray(new String[0]));
+            ThrowDiceReply reply = ThrowDiceReply.newBuilder().setThrowed(true).build();
+            responseObserver.onNext(reply);
+        } else {
+            ThrowDiceReply reply = ThrowDiceReply.newBuilder().setThrowed(false).build();
             responseObserver.onNext(reply);
         }
         responseObserver.onCompleted();
@@ -146,10 +178,16 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
         }
     }
 
-    /*@Override
-    public void throwDice(ThrowDiceRequest req, StreamObserver<ThrowDiceReply> responseObserver) {
-        ThrowDiceReply reply = ThrowDiceReply.newBuilder().setDiceValue("1").build();
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
-    }*/
+    public void sendThrowDice(Player sendToPlayer, Player playerThatThrow, String value) {
+        StreamObserver<DiceThrowedReply> responseObserver = throwingDiceMap.get(sendToPlayer);
+        if (responseObserver != null) {
+            DiceThrowedReply reply =
+                DiceThrowedReply
+                    .newBuilder()
+                    .setPlayerName(playerThatThrow.getName())
+                    .setDiceValue(value)
+                    .build();
+            responseObserver.onNext(reply);
+        }
+    }
 }
