@@ -16,8 +16,10 @@
   </columnConstraints>
   <rowConstraints>
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-    <RowConstraints vgrow="SOMETIMES" />
-    <RowConstraints vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints vgrow="SOMETIMES" />
+      <RowConstraints vgrow="SOMETIMES" />
       <RowConstraints vgrow="SOMETIMES" />
       <RowConstraints vgrow="SOMETIMES" />
       <RowConstraints vgrow="SOMETIMES" />
@@ -25,21 +27,22 @@
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <TextField fx:id="tfRoomPassword" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-      <TextField fx:id="tfCardName" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" />
-      <Button fx:id="bSubmitCard" mnemonicParsing="false" text="Выбрать" GridPane.columnIndex="2" GridPane.hgrow="NEVER" GridPane.rowIndex="4" />
-      <TextArea fx:id="tfOutput" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="7" GridPane.vgrow="ALWAYS" />
-      <TextField fx:id="tfRoomName" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
-      <Button fx:id="bEnter" mnemonicParsing="false" text="Войти" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя комнаты" GridPane.hgrow="NEVER" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Пароль" GridPane.hgrow="NEVER" GridPane.rowIndex="1" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя выбранной карты" GridPane.rowIndex="4" />
-      <Button fx:id="bThrowDice" mnemonicParsing="false" text="Кинуть кубик" GridPane.columnIndex="2" GridPane.rowIndex="5" GridPane.rowSpan="2" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя игрока" GridPane.rowIndex="2" />
-      <TextField fx:id="tfPlayerName" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2" />
-      <TextField text="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Минимальное значение кубика" GridPane.rowIndex="5" />
-      <TextField text="6" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Максимальное значение кубика" GridPane.rowIndex="6" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя игрока" />
+      <TextField fx:id="tfPlayerName" GridPane.columnIndex="1" GridPane.columnSpan="2" />
+      <Button fx:id="bLogin" mnemonicParsing="false" text="Войти" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя комнаты" GridPane.hgrow="NEVER" GridPane.rowIndex="2" />
+      <TextField fx:id="tfRoomName" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Пароль комнаты" GridPane.hgrow="NEVER" GridPane.rowIndex="3" />
+      <TextField fx:id="tfRoomPassword" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+      <Button fx:id="bJoinRoom" mnemonicParsing="false" text="Войти в комнату" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Имя выбранной карты" GridPane.rowIndex="6" />
+      <TextField fx:id="tfCardName" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6" />
+      <Button fx:id="bSubmitCard" mnemonicParsing="false" text="Выбрать" GridPane.columnIndex="2" GridPane.hgrow="NEVER" GridPane.rowIndex="6" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Максимальное значение кубика" GridPane.rowIndex="8" />
+      <TextField text="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Минимальное значение кубика" GridPane.rowIndex="7" />
+      <TextField text="6" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
+      <Button fx:id="bThrowDice" mnemonicParsing="false" text="Кинуть кубик" GridPane.columnIndex="2" GridPane.rowIndex="7" GridPane.rowSpan="2" />
+      <TextArea fx:id="tfOutput" editable="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="9" GridPane.vgrow="ALWAYS" />
    </children>
 </GridPane>

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +22,7 @@ import javax.annotation.PreDestroy;
 public class RoomsManager {
     private static final Logger logger = LogManager.getLogger();
 
+    private final Object modificationLock = new Object();
     private final ConcurrentHashMap<String, Room> roomsByName = new ConcurrentHashMap<>();
 
     @Autowired
@@ -30,25 +32,38 @@ public class RoomsManager {
     public void cleanUp() throws Exception {
     }
 
-    public Room getRoom(String name) {
-        return roomsByName.computeIfAbsent(name, k -> room(name));
+    public Room getRoom(String name, String password) throws RoomBadPasswordException {
+        synchronized (modificationLock) {
+            Room room = roomsByName.get(name);
+            if (room == null) {
+                room = room(name, password);
+                roomsByName.put(name, room);
+            } else {
+                if (!Objects.equals(password, room.getPassword())) {
+                    throw new RoomBadPasswordException();
+                }
+            }
+            return room;
+        }
     }
 
     public Collection<Room> getRooms() {
-        return roomsByName.values();
+        return Collections.unmodifiableCollection(roomsByName.values());
     }
 
     public void removeRoom(Room roomArg) {
-        roomsByName.forEach((name, room) -> {
-            if (Objects.equals(roomArg, room)) {
-                roomsByName.remove(name, room);
-            }
-        });
+        synchronized (modificationLock) {
+            roomsByName.forEach((name, room) -> {
+                if (Objects.equals(roomArg, room)) {
+                    roomsByName.remove(name, room);
+                }
+            });
+        }
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    private Room room(String name) {
-        return new Room(mainServiceManager, name);
+    private Room room(String name, String password) {
+        return new Room(mainServiceManager, name, password);
     }
 }

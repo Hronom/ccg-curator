@@ -13,6 +13,7 @@ import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
 import com.github.hronom.ccg.curator.server.components.business.Room;
+import com.github.hronom.ccg.curator.server.components.business.RoomBadPasswordException;
 import com.github.hronom.ccg.curator.server.components.business.RoomsManager;
 
 import org.apache.logging.log4j.LogManager;
@@ -92,12 +93,17 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     public void joinRoom(JoinRoomRequest req, StreamObserver<JoinRoomReply> responseObserver) {
         Player player = playersManager.getPlayer(req.getPlayerId());
         if (player != null) {
-            Room room = roomsManager.getRoom(req.getRoomName());
-            mainManager.joinRoom(player, room);
-            JoinRoomReply reply = JoinRoomReply.newBuilder().setJoined(true).build();
-            responseObserver.onNext(reply);
+            try {
+                Room room = roomsManager.getRoom(req.getRoomName(), req.getRoomPassword());
+                mainManager.joinRoom(player, room);
+                JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.JOINED).build();
+                responseObserver.onNext(reply);
+            } catch (RoomBadPasswordException exception) {
+                JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.BAD_PASSWORD).build();
+                responseObserver.onNext(reply);
+            }
         } else {
-            JoinRoomReply reply = JoinRoomReply.newBuilder().setJoined(false).build();
+            JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.BAD_PLAYER_ID).build();
             responseObserver.onNext(reply);
         }
         responseObserver.onCompleted();

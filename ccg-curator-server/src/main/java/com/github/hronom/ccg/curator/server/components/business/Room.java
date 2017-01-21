@@ -22,6 +22,7 @@ public class Room {
     private static final Logger logger = LogManager.getLogger();
 
     private final String name;
+    private final String password;
 
     private final CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<>();
 
@@ -29,9 +30,10 @@ public class Room {
 
     private final MainServiceManager mainServiceManager;
 
-    public Room(MainServiceManager mainServiceManagerArg, String nameArg) {
+    public Room(MainServiceManager mainServiceManagerArg, String nameArg, String passwordArg) {
         mainServiceManager = mainServiceManagerArg;
         name = nameArg;
+        password = passwordArg;
     }
 
     @PreDestroy
@@ -41,6 +43,10 @@ public class Room {
 
     public String getName() {
         return name;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void addPlayer(Player player) {

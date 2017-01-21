@@ -39,10 +39,16 @@ message LoginReply {
 message JoinRoomRequest {
     int64 playerId = 1;
     string roomName = 2;
+    string roomPassword = 3;
 }
 
 message JoinRoomReply {
-    bool joined = 1;
+    enum Codes {
+        JOINED = 0;
+        BAD_PLAYER_ID = 1;
+        BAD_PASSWORD = 2;
+    }
+    Codes code = 1;
 }
 
 message SubscribeOnCardsShowdownRequest {

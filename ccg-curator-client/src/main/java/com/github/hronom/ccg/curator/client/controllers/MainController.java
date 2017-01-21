@@ -35,16 +35,19 @@ public class MainController implements Initializable {
     private static final Logger logger = LogManager.getLogger();
 
     @FXML
+    private TextField tfPlayerName;
+
+    @FXML
+    private Button bLogin;
+
+    @FXML
     private TextField tfRoomName;
 
     @FXML
     private TextField tfRoomPassword;
 
     @FXML
-    private TextField tfPlayerName;
-
-    @FXML
-    private Button bEnter;
+    private Button bJoinRoom;
 
     @FXML
     private TextField tfCardName;
@@ -69,33 +72,62 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        bEnter.setOnAction(new EventHandler<ActionEvent>() {
+        bLogin.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                tfPlayerName.setDisable(true);
+                bLogin.setDisable(true);
+                tfRoomName.setDisable(true);
+                tfRoomPassword.setDisable(true);
+                bJoinRoom.setDisable(true);
+                tfCardName.setDisable(true);
+                bSubmitCard.setDisable(true);
+                bThrowDice.setDisable(true);
+                tfOutput.setDisable(true);
 
-                AtomicBoolean errorWhileLogin = new AtomicBoolean(false);
                 loginStreamObserver = new StreamObserver<LoginReply>() {
                     @Override
                     public void onNext(LoginReply value) {
                         playerId.set(value.getPlayerId());
-                        println("Player id " + value.getPlayerId());
+                        println("Logged, player id " + value.getPlayerId());
+                        println();
+
+                        tfPlayerName.setDisable(false);
+                        bLogin.setDisable(false);
+                        tfRoomName.setDisable(false);
+                        tfRoomPassword.setDisable(false);
+                        bJoinRoom.setDisable(false);
+                        tfCardName.setDisable(false);
+                        bSubmitCard.setDisable(false);
+                        bThrowDice.setDisable(false);
+                        tfOutput.setDisable(false);
                     }
 
                     @Override
                     public void onError(Throwable t) {
                         logger.error("Error", t);
                         playerId.set(notSet);
-                        errorWhileLogin.set(true);
-
                         if (t instanceof StatusRuntimeException) {
                             println(((StatusRuntimeException) t).getStatus().toString());
+                            println();
                         }
+
+                        tfPlayerName.setDisable(false);
+                        bLogin.setDisable(false);
+                        tfRoomName.setDisable(false);
+                        tfRoomPassword.setDisable(false);
+                        bJoinRoom.setDisable(false);
+                        tfCardName.setDisable(false);
+                        bSubmitCard.setDisable(false);
+                        bThrowDice.setDisable(false);
+                        tfOutput.setDisable(false);
                     }
 
                     @Override
                     public void onCompleted() {
                         playerId.set(notSet);
-                        println("Complete");
+                        println("Logged session complete, connection to the server closed.");
+                        println();
                     }
                 };
                 StreamObserver<LoginRequest> requests = stub.login(loginStreamObserver);
@@ -105,47 +137,43 @@ public class MainController implements Initializable {
                         .setPlayerName(tfPlayerName.getText())
                         .build();
                 requests.onNext(request);
+            }
+        });
 
-                while (playerId.get() == notSet && !errorWhileLogin.get()) {
-                    try {
-                        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
-                    } catch (InterruptedException e) {
-                        logger.error("Error", e);
-                    }
-                }
-
-                JoinRoomRequest joinRoomRequest =
-                    JoinRoomRequest
-                        .newBuilder()
-                        .setPlayerId(playerId.get())
-                        .setRoomName(tfRoomName.getText())
-                        .build();
-                JoinRoomReply joinRoomReply = blockingStub.joinRoom(joinRoomRequest);
-
-                if (joinRoomReply.getJoined()) {
-                    println("Joined room: " + tfRoomName.getText());
+        bJoinRoom.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (playerId.get() == notSet) {
+                    println("Login first");
+                    println();
                 } else {
-                    println("Room: " + tfRoomName.getText() + " not joined.");
-                    return;
-                }
+                    JoinRoomRequest joinRoomRequest = JoinRoomRequest.newBuilder()
+                        .setPlayerId(playerId.get()).setRoomName(tfRoomName.getText())
+                        .setRoomPassword(tfRoomPassword.getText()).build();
+                    JoinRoomReply joinRoomReply = blockingStub.joinRoom(joinRoomRequest);
+                    if (joinRoomReply.getCode() == JoinRoomReply.Codes.JOINED) {
+                        println("Joined room: " + tfRoomName.getText());
+                    } else if (joinRoomReply.getCode() == JoinRoomReply.Codes.BAD_PLAYER_ID) {
+                        println("Room: " + tfRoomName.getText() + " not joined (Bad player id)");
+                        return;
+                    } else if (joinRoomReply.getCode() == JoinRoomReply.Codes.BAD_PASSWORD) {
+                        println("Room: " + tfRoomName.getText() + " not joined (Bad password)");
+                        return;
+                    }
 
-                SubscribeOnCardsShowdownRequest subscribeOnCardsShowdownRequest =
                     SubscribeOnCardsShowdownRequest
-                        .newBuilder()
-                        .setPlayerId(playerId.get())
+                        subscribeOnCardsShowdownRequest
+                        = SubscribeOnCardsShowdownRequest.newBuilder().setPlayerId(playerId.get())
                         .build();
-
-                stub.subscribeOnCardsShowdown(subscribeOnCardsShowdownRequest,
-                    new StreamObserver<CardRevealedReply>() {
+                    stub.subscribeOnCardsShowdown(subscribeOnCardsShowdownRequest, new StreamObserver<CardRevealedReply>() {
                         @Override
                         public void onNext(CardRevealedReply value) {
-                            println("================================================");
                             println(
-                                "Player name \"" +
-                                value.getPlayerName() +
-                                "\", card name \"" +
-                                value.getCardName() +
-                                "\"");
+                                "Player name \"" + value.getPlayerName() +
+                                "\", card name \"" + value.getCardName() +
+                                "\""
+                            );
+                            println();
                         }
 
                         @Override
@@ -157,8 +185,8 @@ public class MainController implements Initializable {
                         public void onCompleted() {
 
                         }
-                    }
-                );
+                    });
+                }
             }
         });
 
@@ -174,6 +202,7 @@ public class MainController implements Initializable {
                 SubmitCardReply submitCardReply = blockingStub.submitCard(submitCardRequest);
                 if (submitCardReply.getSubmited()) {
                     println("Card submitted \"" + tfCardName.getText() + "\"");
+                    println();
                 } else {
                     println("Card not submitted \"" + tfCardName.getText() + "\"");
                 }
@@ -181,8 +210,8 @@ public class MainController implements Initializable {
         });
 
         ManagedChannelBuilder<?> channelBuilder =
-            ManagedChannelBuilder
-                .forAddress("localhost", 50051)
+//            ManagedChannelBuilder.forTarget("139.59.129.12:50051")
+            ManagedChannelBuilder.forTarget("localhost:50051")
             // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
             // needing certificates.
             .usePlaintext(true);
@@ -193,6 +222,9 @@ public class MainController implements Initializable {
 
     private void println(String text) {
         tfOutput.appendText(text);
+        tfOutput.appendText("\n");
+    }
+    private void println() {
         tfOutput.appendText("\n");
     }
 }
