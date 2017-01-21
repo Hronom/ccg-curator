@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -54,10 +53,25 @@ public class Room {
 
     public void addPlayer(Player player) {
         players.add(player);
+        // Send notifications
+        for (Player playerInRooom : players) {
+            if (player != playerInRooom) {
+                mainServiceManager.sendPlayerEnterRoom(player, playerInRooom);
+            }
+        }
+        for (Player playerToSend : players) {
+            if (playerToSend != player) {
+                mainServiceManager.sendPlayerEnterRoom(playerToSend, player);
+            }
+        }
     }
 
     public void removePlayer(Player player) {
         players.remove(player);
+        // Send notifications
+        for (Player playerToSend : players) {
+            mainServiceManager.sendPlayerLeftRoom(playerToSend, player);
+        }
     }
 
     public Collection<Player> getPlayers() {
@@ -75,7 +89,7 @@ public class Room {
 
     public void throwDice(Player player, String[] diceValues) {
         int randomPos = random.nextInt(diceValues.length);
-        // Send notification.
+        // Send notifications
         for (Player playerToSend : players) {
             mainServiceManager.sendThrowDice(playerToSend, player, diceValues[randomPos]);
         }
@@ -89,7 +103,7 @@ public class Room {
             }
         }
 
-        // Send notification.
+        // Send notifications
         for (Map.Entry<Player, String> entry : submitedCards.entrySet()) {
             for (Player playerToSend : players) {
                 mainServiceManager.sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());

@@ -1,16 +1,13 @@
 package com.github.hronom.ccg.curator.client.controllers;
 
-import com.github.hronom.ccg.curator.CardRevealedReply;
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
-import com.github.hronom.ccg.curator.DiceThrowedReply;
 import com.github.hronom.ccg.curator.JoinRoomReply;
 import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
 import com.github.hronom.ccg.curator.LoginRequest;
+import com.github.hronom.ccg.curator.RoomEventReply;
 import com.github.hronom.ccg.curator.SubmitCardReply;
 import com.github.hronom.ccg.curator.SubmitCardRequest;
-import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
-import com.github.hronom.ccg.curator.SubscribeOnThrowingDiceRequest;
 import com.github.hronom.ccg.curator.ThrowDiceReply;
 import com.github.hronom.ccg.curator.ThrowDiceRequest;
 
@@ -20,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ResourceBundle;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -143,79 +139,57 @@ public class MainController implements Initializable {
                             .setRoomName(tfRoomName.getText())
                             .setRoomPassword(tfRoomPassword.getText())
                             .build();
-                    stub.joinRoom(joinRoomRequest, new StreamObserver<JoinRoomReply>() {
+                    stub.joinRoom(joinRoomRequest, new StreamObserver<RoomEventReply>() {
                         @Override
-                        public void onNext(JoinRoomReply value) {
-                            if (value.getCode() == JoinRoomReply.Codes.JOINED) {
-                                joinedRoom.set(true);
-                                println("Joined room \"" + tfRoomName.getText() + "\"");
+                        public void onNext(RoomEventReply value) {
+                            if (value.getValueCase() == RoomEventReply.ValueCase.JOINROOMREPLY) {
+                                if (value.getJoinRoomReply().getCode() ==
+                                    JoinRoomReply.Codes.JOINED) {
+                                    joinedRoom.set(true);
+                                    println("Joined room \"" + tfRoomName.getText() + "\"");
+                                    println();
+                                    disableInputs(false);
+                                } else if (value.getJoinRoomReply().getCode() ==
+                                           JoinRoomReply.Codes.BAD_PLAYER_ID) {
+                                    joinedRoom.set(false);
+                                    println("Room \"" + tfRoomName.getText() +
+                                            "\" not joined (Bad player id)");
+                                    println();
+                                    disableInputs(false);
+                                } else if (value.getJoinRoomReply().getCode() ==
+                                           JoinRoomReply.Codes.BAD_PASSWORD) {
+                                    joinedRoom.set(false);
+                                    println("Room \"" + tfRoomName.getText() +
+                                            "\" not joined (Bad password)");
+                                    println();
+                                    disableInputs(false);
+                                }
+                            } else if (value.getValueCase() == RoomEventReply.ValueCase.PLAYERENTERROOMREPLY) {
+                                println("Player enter room \"" +
+                                        value.getPlayerEnterRoomReply().getPlayerName() + "\"");
                                 println();
-                                disableInputs(false);
-
-                                SubscribeOnCardsShowdownRequest
-                                    subscribeOnCardsShowdownRequest
-                                    = SubscribeOnCardsShowdownRequest.newBuilder().setPlayerId(playerId.get())
-                                    .build();
-                                stub.subscribeOnCardsShowdown(subscribeOnCardsShowdownRequest, new StreamObserver<CardRevealedReply>() {
-                                    @Override
-                                    public void onNext(CardRevealedReply value) {
-                                        println(
-                                            "Player name \"" + value.getPlayerName() +
-                                            "\", card name \"" + value.getCardName() +
-                                            "\""
-                                        );
-                                        println();
-                                        tfCardName.setDisable(false);
-                                        bSubmitCard.setDisable(false);
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable t) {
-                                        tfCardName.setDisable(false);
-                                        bSubmitCard.setDisable(false);
-                                    }
-
-                                    @Override
-                                    public void onCompleted() {
-                                        tfCardName.setDisable(false);
-                                        bSubmitCard.setDisable(false);
-                                    }
-                                });
-
-                                SubscribeOnThrowingDiceRequest
-                                    subscribeOnThrowingDiceRequest
-                                    = SubscribeOnThrowingDiceRequest.newBuilder().setPlayerId(playerId.get())
-                                    .build();
-                                stub.subscribeOnThrowingDice(subscribeOnThrowingDiceRequest, new StreamObserver<DiceThrowedReply>() {
-                                    @Override
-                                    public void onNext(DiceThrowedReply value) {
-                                        println(
-                                            "Player name \"" + value.getPlayerName() + "\", " +
-                                            "dice value \"" + value.getDiceValue() + "\""
-                                        );
-                                        println();
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable t) {
-
-                                    }
-
-                                    @Override
-                                    public void onCompleted() {
-
-                                    }
-                                });
-                            } else if (value.getCode() == JoinRoomReply.Codes.BAD_PLAYER_ID) {
-                                joinedRoom.set(false);
-                                println("Room \"" + tfRoomName.getText() + "\" not joined (Bad player id)");
+                            } else if (value.getValueCase() == RoomEventReply.ValueCase.PLAYERLEFTRROOMREPLY) {
+                                println("Player left room \"" +
+                                        value.getPlayerEnterRoomReply().getPlayerName() + "\"");
                                 println();
-                                disableInputs(false);
-                            } else if (value.getCode() == JoinRoomReply.Codes.BAD_PASSWORD) {
-                                joinedRoom.set(false);
-                                println("Room \"" + tfRoomName.getText() + "\" not joined (Bad password)");
+                            } else if (value.getValueCase() ==
+                                       RoomEventReply.ValueCase.CARDREVEALEDREPLY) {
+                                println(
+                                    "Player name \"" + value.getCardRevealedReply().getPlayerName() +
+                                    "\", card name \"" + value.getCardRevealedReply().getCardName() +
+                                    "\""
+                                );
                                 println();
-                                disableInputs(false);
+                                tfCardName.setDisable(false);
+                                bSubmitCard.setDisable(false);
+                            } else if (value.getValueCase() ==
+                                       RoomEventReply.ValueCase.DICETHROWEDREPLY) {
+                                println(
+                                    "Player name \"" + value.getDiceThrowedReply().getPlayerName() +
+                                    "\", " + "dice value \"" + value.getDiceThrowedReply().getDiceValue() +
+                                    "\""
+                                );
+                                println();
                             }
                         }
 
@@ -223,13 +197,16 @@ public class MainController implements Initializable {
                         public void onError(Throwable t) {
                             logger.error("Error", t);
                             joinedRoom.set(false);
-                            println("Room \"" + tfRoomName.getText() + "\" not joined (Bad player id)");
+                            println("Leave room \"" + tfRoomName.getText() + "\"");
                             println();
                             disableInputs(false);
                         }
 
                         @Override
                         public void onCompleted() {
+                            joinedRoom.set(false);
+                            println("Leave room \"" + tfRoomName.getText() + "\"");
+                            println();
                         }
                     });
                 }
@@ -242,8 +219,12 @@ public class MainController implements Initializable {
                 tfCardName.setDisable(true);
                 bSubmitCard.setDisable(true);
                 try {
-                    SubmitCardRequest request = SubmitCardRequest.newBuilder()
-                        .setPlayerId(playerId.get()).setCardName(tfCardName.getText()).build();
+                    SubmitCardRequest request =
+                        SubmitCardRequest
+                            .newBuilder()
+                            .setPlayerId(playerId.get())
+                            .setCardName(tfCardName.getText())
+                            .build();
                     SubmitCardReply reply = blockingStub.submitCard(request);
                     /*if (reply.getCode() == SubmitCardReply.Codes.SUBMITTED) {
                         println("Card submitted \"" + tfCardName.getText() + "\"");

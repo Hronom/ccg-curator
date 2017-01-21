@@ -3,7 +3,7 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "com.github.hronom.ccg.curator";
 option java_outer_classname = "CcgCuratorProto";
-//option java_generic_services = true;
+option java_generic_services = true;
 //option objc_class_prefix = "CCGC";
 
 package ccgcurator;
@@ -12,16 +12,10 @@ service CcgCurator {
     rpc Login (stream LoginRequest) returns (stream LoginReply) {
     }
 
-    rpc JoinRoom (JoinRoomRequest) returns (JoinRoomReply) {
-    }
-
-    rpc SubscribeOnCardsShowdown (SubscribeOnCardsShowdownRequest) returns (stream CardRevealedReply) {
+    rpc JoinRoom (JoinRoomRequest) returns (stream RoomEventReply) {
     }
 
     rpc SubmitCard (SubmitCardRequest) returns (SubmitCardReply) {
-    }
-
-    rpc SubscribeOnThrowingDice (SubscribeOnThrowingDiceRequest) returns (stream DiceThrowedReply) {
     }
 
     rpc ThrowDice (ThrowDiceRequest) returns (ThrowDiceReply) {
@@ -42,6 +36,16 @@ message JoinRoomRequest {
     string roomPassword = 3;
 }
 
+message RoomEventReply {
+    oneof value {
+        JoinRoomReply joinRoomReply = 1;
+        PlayerEnterRoomReply playerEnterRoomReply = 2;
+        PlayerLeftRroomReply playerLeftRroomReply = 3;
+        CardRevealedReply cardRevealedReply = 4;
+        DiceThrowedReply diceThrowedReply = 5;
+    }
+}
+
 message JoinRoomReply {
     enum Codes {
         JOINED = 0;
@@ -51,13 +55,22 @@ message JoinRoomReply {
     Codes code = 1;
 }
 
-message SubscribeOnCardsShowdownRequest {
-    int64 playerId = 1;
+message PlayerEnterRoomReply {
+    string playerName = 1;
+}
+
+message PlayerLeftRroomReply {
+    string playerName = 1;
 }
 
 message CardRevealedReply {
     string playerName = 1;
     string cardName = 2;
+}
+
+message DiceThrowedReply {
+    string playerName = 1;
+    string diceValue = 2;
 }
 
 message SubmitCardRequest {
@@ -72,15 +85,6 @@ message SubmitCardReply {
         CARD_ALREADY_SUBMITTED = 2;
     }
     Codes code = 1;
-}
-
-message SubscribeOnThrowingDiceRequest {
-    int64 playerId = 1;
-}
-
-message DiceThrowedReply {
-    string playerName = 1;
-    string diceValue = 2;
 }
 
 message ThrowDiceRequest {

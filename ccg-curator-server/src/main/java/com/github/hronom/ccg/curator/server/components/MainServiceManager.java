@@ -7,10 +7,11 @@ import com.github.hronom.ccg.curator.JoinRoomReply;
 import com.github.hronom.ccg.curator.JoinRoomRequest;
 import com.github.hronom.ccg.curator.LoginReply;
 import com.github.hronom.ccg.curator.LoginRequest;
+import com.github.hronom.ccg.curator.PlayerEnterRoomReply;
+import com.github.hronom.ccg.curator.PlayerLeftRroomReply;
+import com.github.hronom.ccg.curator.RoomEventReply;
 import com.github.hronom.ccg.curator.SubmitCardReply;
 import com.github.hronom.ccg.curator.SubmitCardRequest;
-import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
-import com.github.hronom.ccg.curator.SubscribeOnThrowingDiceRequest;
 import com.github.hronom.ccg.curator.ThrowDiceReply;
 import com.github.hronom.ccg.curator.ThrowDiceRequest;
 import com.github.hronom.ccg.curator.server.components.business.CardAlreadySubmittedException;
@@ -41,11 +42,8 @@ import io.grpc.stub.StreamObserver;
 public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     private static final Logger logger = LogManager.getLogger();
 
-    private final ConcurrentHashMap<Player, StreamObserver<CardRevealedReply>>
-        cardsShowdownMap
-        = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Player, StreamObserver<DiceThrowedReply>>
-        throwingDiceMap
+    private final ConcurrentHashMap<Player, StreamObserver<RoomEventReply>>
+        roomEventReplyMap
         = new ConcurrentHashMap<>();
 
     @Autowired
@@ -59,10 +57,7 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
 
     @PreDestroy
     public void cleanUp() throws Exception {
-        for (StreamObserver<CardRevealedReply> streamObserver : cardsShowdownMap.values()) {
-            streamObserver.onCompleted();
-        }
-        for (StreamObserver<DiceThrowedReply> streamObserver : throwingDiceMap.values()) {
+        for (StreamObserver<RoomEventReply> streamObserver : roomEventReplyMap.values()) {
             streamObserver.onCompleted();
         }
     }
@@ -101,38 +96,48 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     }
 
     @Override
-    public void joinRoom(JoinRoomRequest req, StreamObserver<JoinRoomReply> responseObserver) {
+    public void joinRoom(JoinRoomRequest req, StreamObserver<RoomEventReply> responseObserver) {
         Player player = playersManager.getPlayer(req.getPlayerId());
         if (player != null) {
             try {
                 Room room = roomsManager.getRoom(req.getRoomName(), req.getRoomPassword());
+                roomEventReplyMap.put(player, responseObserver);
                 mainManager.joinRoom(player, room);
-                JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.JOINED).build();
+                RoomEventReply reply =
+                    RoomEventReply
+                        .newBuilder()
+                        .setJoinRoomReply(
+                            JoinRoomReply
+                                .newBuilder()
+                                .setCode(JoinRoomReply.Codes.JOINED)
+                        )
+                        .build();
                 responseObserver.onNext(reply);
             } catch (RoomBadPasswordException exception) {
-                JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.BAD_PASSWORD).build();
+                RoomEventReply reply =
+                    RoomEventReply
+                        .newBuilder()
+                        .setJoinRoomReply(
+                            JoinRoomReply
+                                .newBuilder()
+                                .setCode(JoinRoomReply.Codes.BAD_PASSWORD)
+                        )
+                        .build();
                 responseObserver.onNext(reply);
+                responseObserver.onCompleted();
             }
         } else {
-            JoinRoomReply reply = JoinRoomReply.newBuilder().setCode(JoinRoomReply.Codes.BAD_PLAYER_ID).build();
+            RoomEventReply reply =
+                RoomEventReply
+                    .newBuilder()
+                    .setJoinRoomReply(
+                        JoinRoomReply
+                            .newBuilder()
+                            .setCode(JoinRoomReply.Codes.BAD_PLAYER_ID)
+                    )
+                    .build();
             responseObserver.onNext(reply);
-        }
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void subscribeOnCardsShowdown(SubscribeOnCardsShowdownRequest req, StreamObserver<CardRevealedReply> responseObserver) {
-        Player player = playersManager.getPlayer(req.getPlayerId());
-        if (player != null) {
-            cardsShowdownMap.put(player, responseObserver);
-        }
-    }
-
-    @Override
-    public void subscribeOnThrowingDice(SubscribeOnThrowingDiceRequest req, StreamObserver<DiceThrowedReply> responseObserver) {
-        Player player = playersManager.getPlayer(req.getPlayerId());
-        if (player != null) {
-            throwingDiceMap.put(player, responseObserver);
+            responseObserver.onCompleted();
         }
     }
 
@@ -183,27 +188,71 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
         responseObserver.onCompleted();
     }
 
-    public void sendShowdownCard(Player sendToPlayer, Player cardOwner, String cardName) {
-        StreamObserver<CardRevealedReply> responseObserver = cardsShowdownMap.get(sendToPlayer);
+    public void sendPlayerEnterRoom(Player sendToPlayer, Player whoEnter) {
+        StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
         if (responseObserver != null) {
-            CardRevealedReply reply =
-                CardRevealedReply
+            RoomEventReply reply =
+                RoomEventReply
                     .newBuilder()
-                    .setPlayerName(cardOwner.getName())
-                    .setCardName(cardName)
+                    .setPlayerEnterRoomReply(
+                        PlayerEnterRoomReply
+                            .newBuilder()
+                            .setPlayerName(whoEnter.getName())
+                            .build()
+                    )
+                    .build();
+            responseObserver.onNext(reply);
+        }
+    }
+
+    public void sendPlayerLeftRoom(Player sendToPlayer, Player whoEnter) {
+        StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
+        if (responseObserver != null) {
+            RoomEventReply reply =
+                RoomEventReply
+                    .newBuilder()
+                    .setPlayerLeftRroomReply(
+                        PlayerLeftRroomReply
+                            .newBuilder()
+                            .setPlayerName(whoEnter.getName())
+                            .build()
+                    )
+                    .build();
+            responseObserver.onNext(reply);
+        }
+    }
+
+    public void sendShowdownCard(Player sendToPlayer, Player cardOwner, String cardName) {
+        StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
+        if (responseObserver != null) {
+            RoomEventReply reply =
+                RoomEventReply
+                    .newBuilder()
+                    .setCardRevealedReply(
+                        CardRevealedReply
+                            .newBuilder()
+                            .setPlayerName(cardOwner.getName())
+                            .setCardName(cardName)
+                            .build()
+                    )
                     .build();
             responseObserver.onNext(reply);
         }
     }
 
     public void sendThrowDice(Player sendToPlayer, Player playerThatThrow, String value) {
-        StreamObserver<DiceThrowedReply> responseObserver = throwingDiceMap.get(sendToPlayer);
+        StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
         if (responseObserver != null) {
-            DiceThrowedReply reply =
-                DiceThrowedReply
+            RoomEventReply reply =
+                RoomEventReply
                     .newBuilder()
-                    .setPlayerName(playerThatThrow.getName())
-                    .setDiceValue(value)
+                    .setDiceThrowedReply(
+                        DiceThrowedReply
+                            .newBuilder()
+                            .setPlayerName(playerThatThrow.getName())
+                            .setDiceValue(value)
+                            .build()
+                    )
                     .build();
             responseObserver.onNext(reply);
         }
