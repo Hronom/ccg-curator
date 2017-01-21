@@ -165,16 +165,20 @@ public class MainController implements Initializable {
                                             "\""
                                         );
                                         println();
+                                        tfCardName.setDisable(false);
+                                        bSubmitCard.setDisable(false);
                                     }
 
                                     @Override
                                     public void onError(Throwable t) {
-
+                                        tfCardName.setDisable(false);
+                                        bSubmitCard.setDisable(false);
                                     }
 
                                     @Override
                                     public void onCompleted() {
-
+                                        tfCardName.setDisable(false);
+                                        bSubmitCard.setDisable(false);
                                     }
                                 });
 
@@ -235,22 +239,24 @@ public class MainController implements Initializable {
         bSubmitCard.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                disableInputs(true);
+                tfCardName.setDisable(true);
+                bSubmitCard.setDisable(true);
                 try {
                     SubmitCardRequest request = SubmitCardRequest.newBuilder()
                         .setPlayerId(playerId.get()).setCardName(tfCardName.getText()).build();
                     SubmitCardReply reply = blockingStub.submitCard(request);
-                    if (reply.getSubmited()) {
+                    /*if (reply.getCode() == SubmitCardReply.Codes.SUBMITTED) {
                         println("Card submitted \"" + tfCardName.getText() + "\"");
                         println();
-                    } else {
-                        println("Card not submitted \"" + tfCardName.getText() + "\"");
+                    } else if (reply.getCode() == SubmitCardReply.Codes.CARD_ALREADY_SUBMITTED) {
+                        println("Card already submitted \"" + tfCardName.getText() + "\"");
                         println();
-                    }
+                    }*/
                 } catch (Exception exception) {
                     logger.error("Error", exception);
+                    tfCardName.setDisable(false);
+                    bSubmitCard.setDisable(false);
                 }
-                disableInputs(false);
             }
         });
 

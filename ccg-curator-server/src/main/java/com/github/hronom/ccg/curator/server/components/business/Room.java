@@ -64,10 +64,12 @@ public class Room {
         return players;
     }
 
-    public void submitCard(Player player, String cardName) {
+    public void submitCard(Player player, String cardName) throws CardAlreadySubmittedException {
         if (!submitedCards.containsKey(player)) {
             submitedCards.put(player, cardName);
             checkIsAllSubmitted();
+        } else {
+            throw new CardAlreadySubmittedException();
         }
     }
 
@@ -90,10 +92,7 @@ public class Room {
         // Send notification.
         for (Map.Entry<Player, String> entry : submitedCards.entrySet()) {
             for (Player playerToSend : players) {
-                if (!Objects.equals(entry.getKey(), playerToSend)) {
-                    mainServiceManager
-                        .sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
-                }
+                mainServiceManager.sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
             }
         }
 

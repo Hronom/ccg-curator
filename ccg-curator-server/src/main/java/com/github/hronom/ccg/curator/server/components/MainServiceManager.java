@@ -13,6 +13,7 @@ import com.github.hronom.ccg.curator.SubscribeOnCardsShowdownRequest;
 import com.github.hronom.ccg.curator.SubscribeOnThrowingDiceRequest;
 import com.github.hronom.ccg.curator.ThrowDiceReply;
 import com.github.hronom.ccg.curator.ThrowDiceRequest;
+import com.github.hronom.ccg.curator.server.components.business.CardAlreadySubmittedException;
 import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
@@ -139,12 +140,29 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     public void submitCard(SubmitCardRequest req, StreamObserver<SubmitCardReply> responseObserver) {
         Player player = playersManager.getPlayer(req.getPlayerId());
         if (player != null) {
-            Room room = mainManager.getRoom(player);
-            room.submitCard(player, req.getCardName());
-            SubmitCardReply reply = SubmitCardReply.newBuilder().setSubmited(true).build();
-            responseObserver.onNext(reply);
+            try {
+                Room room = mainManager.getRoom(player);
+                room.submitCard(player, req.getCardName());
+                SubmitCardReply reply =
+                    SubmitCardReply
+                        .newBuilder()
+                        .setCode(SubmitCardReply.Codes.SUBMITTED)
+                        .build();
+                responseObserver.onNext(reply);
+            } catch (CardAlreadySubmittedException e) {
+                SubmitCardReply reply =
+                    SubmitCardReply
+                        .newBuilder()
+                        .setCode(SubmitCardReply.Codes.CARD_ALREADY_SUBMITTED)
+                        .build();
+                responseObserver.onNext(reply);
+            }
         } else {
-            SubmitCardReply reply = SubmitCardReply.newBuilder().setSubmited(false).build();
+            SubmitCardReply reply =
+                SubmitCardReply
+                    .newBuilder()
+                    .setCode(SubmitCardReply.Codes.BAD_PLAYER_ID)
+                    .build();
             responseObserver.onNext(reply);
         }
         responseObserver.onCompleted();
