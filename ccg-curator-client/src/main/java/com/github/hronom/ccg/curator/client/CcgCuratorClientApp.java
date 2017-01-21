@@ -1,9 +1,14 @@
 package com.github.hronom.ccg.curator.client;
 
 import com.github.hronom.ccg.curator.client.controllers.MainController;
+import com.github.hronom.ccg.curator.client.utils.UTFResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.net.URL;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -23,6 +28,7 @@ public class CcgCuratorClientApp extends Application {
         });
 
         FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setResources(UTFResourceBundle.getBundle("app"));
         fxmlLoader.setLocation(this.getClass().getResource("main.fxml"));
         GridPane gridPane = fxmlLoader.load();
         MainController mainController = fxmlLoader.getController();

@@ -49,8 +49,9 @@ message RoomEventReply {
 message JoinRoomReply {
     enum Codes {
         JOINED = 0;
-        BAD_PLAYER_ID = 1;
-        BAD_PASSWORD = 2;
+        ALREADY_IN_ROOM = 1;
+        BAD_PLAYER_ID = 2;
+        BAD_PASSWORD = 3;
     }
     Codes code = 1;
 }

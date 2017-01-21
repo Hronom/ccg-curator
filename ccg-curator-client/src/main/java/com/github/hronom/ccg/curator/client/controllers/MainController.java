@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,6 +66,8 @@ public class MainController implements Initializable {
     @FXML
     private TextArea tfOutput;
 
+    private ResourceBundle resourceBundle;
+
     private ManagedChannel channel;
     private CcgCuratorGrpc.CcgCuratorBlockingStub blockingStub;
     private CcgCuratorGrpc.CcgCuratorStub stub;
@@ -78,6 +81,8 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        resourceBundle = resources;
+
         bLogin.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -88,7 +93,7 @@ public class MainController implements Initializable {
                     public void onNext(LoginReply value) {
                         playerId.set(value.getPlayerId());
                         logged.set(true);
-                        println("Logged, player id " + value.getPlayerId());
+                        println("playerLogged", value.getPlayerId());
                         println();
                         disableInputs(false);
                     }
@@ -109,7 +114,7 @@ public class MainController implements Initializable {
                     public void onCompleted() {
                         logged.set(false);
                         joinedRoom.set(false);
-                        println("Logged session complete, connection to the server closed.");
+                        println("loggedSessionComplete");
                         println();
                     }
                 };
@@ -127,11 +132,10 @@ public class MainController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 if (!logged.get()) {
-                    println("Login first");
+                    println("loginFirst");
                     println();
                 } else {
                     disableInputs(true);
-
                     JoinRoomRequest joinRoomRequest =
                         JoinRoomRequest
                             .newBuilder()
@@ -146,38 +150,46 @@ public class MainController implements Initializable {
                                 if (value.getJoinRoomReply().getCode() ==
                                     JoinRoomReply.Codes.JOINED) {
                                     joinedRoom.set(true);
-                                    println("Joined room \"" + tfRoomName.getText() + "\"");
+                                    println("joinedRoom", tfRoomName.getText());
+                                    println();
+                                    disableInputs(false);
+                                } else if (value.getJoinRoomReply().getCode() ==
+                                           JoinRoomReply.Codes.ALREADY_IN_ROOM) {
+                                    joinedRoom.set(false);
+                                    println("roomNotJoinedAlreadyInRoom", tfRoomName.getText());
                                     println();
                                     disableInputs(false);
                                 } else if (value.getJoinRoomReply().getCode() ==
                                            JoinRoomReply.Codes.BAD_PLAYER_ID) {
                                     joinedRoom.set(false);
-                                    println("Room \"" + tfRoomName.getText() +
-                                            "\" not joined (Bad player id)");
+                                    println("roomNotJoinedBadPlayerId", tfRoomName.getText());
                                     println();
                                     disableInputs(false);
                                 } else if (value.getJoinRoomReply().getCode() ==
                                            JoinRoomReply.Codes.BAD_PASSWORD) {
                                     joinedRoom.set(false);
-                                    println("Room \"" + tfRoomName.getText() +
-                                            "\" not joined (Bad password)");
+                                    println("roomNotJoinedBadPassword", tfRoomName.getText());
                                     println();
                                     disableInputs(false);
                                 }
                             } else if (value.getValueCase() == RoomEventReply.ValueCase.PLAYERENTERROOMREPLY) {
-                                println("Player enter room \"" +
-                                        value.getPlayerEnterRoomReply().getPlayerName() + "\"");
+                                println(
+                                    "playerEnterRoom",
+                                    value.getPlayerEnterRoomReply().getPlayerName()
+                                );
                                 println();
                             } else if (value.getValueCase() == RoomEventReply.ValueCase.PLAYERLEFTRROOMREPLY) {
-                                println("Player left room \"" +
-                                        value.getPlayerEnterRoomReply().getPlayerName() + "\"");
+                                println(
+                                    "playerLeftRoom",
+                                    value.getPlayerLeftRroomReply().getPlayerName()
+                                );
                                 println();
                             } else if (value.getValueCase() ==
                                        RoomEventReply.ValueCase.CARDREVEALEDREPLY) {
                                 println(
-                                    "Player name \"" + value.getCardRevealedReply().getPlayerName() +
-                                    "\", card name \"" + value.getCardRevealedReply().getCardName() +
-                                    "\""
+                                    "cardRevealed",
+                                    value.getCardRevealedReply().getPlayerName(),
+                                    value.getCardRevealedReply().getCardName()
                                 );
                                 println();
                                 tfCardName.setDisable(false);
@@ -185,9 +197,9 @@ public class MainController implements Initializable {
                             } else if (value.getValueCase() ==
                                        RoomEventReply.ValueCase.DICETHROWEDREPLY) {
                                 println(
-                                    "Player name \"" + value.getDiceThrowedReply().getPlayerName() +
-                                    "\", " + "dice value \"" + value.getDiceThrowedReply().getDiceValue() +
-                                    "\""
+                                    "diceThrowed",
+                                    value.getDiceThrowedReply().getPlayerName(),
+                                    value.getDiceThrowedReply().getDiceValue()
                                 );
                                 println();
                             }
@@ -197,7 +209,7 @@ public class MainController implements Initializable {
                         public void onError(Throwable t) {
                             logger.error("Error", t);
                             joinedRoom.set(false);
-                            println("Leave room \"" + tfRoomName.getText() + "\"");
+                            println("leavedRoom", tfRoomName.getText());
                             println();
                             disableInputs(false);
                         }
@@ -205,7 +217,7 @@ public class MainController implements Initializable {
                         @Override
                         public void onCompleted() {
                             joinedRoom.set(false);
-                            println("Leave room \"" + tfRoomName.getText() + "\"");
+                            println("leavedRoom", tfRoomName.getText());
                             println();
                         }
                     });
@@ -255,7 +267,7 @@ public class MainController implements Initializable {
                             .build();
                     ThrowDiceReply reply = blockingStub.throwDice(request);
                     if (!reply.getThrowed()) {
-                        println("Dice not throwed \"" + tfDiceValues.getText() + "\"");
+                        println("diceNotThrowed", tfDiceValues.getText());
                         println();
                     }
                 } catch (Exception exception) {
@@ -289,10 +301,12 @@ public class MainController implements Initializable {
         tfOutput.setDisable(disable);
     }
 
-    private void println(String text) {
-        tfOutput.appendText(text);
+    private void println(String key, Object... args) {
+        MessageFormat formatter = new MessageFormat(resourceBundle.getString(key));
+        tfOutput.appendText(formatter.format(args));
         tfOutput.appendText("\n");
     }
+
     private void println() {
         tfOutput.appendText("\n");
     }

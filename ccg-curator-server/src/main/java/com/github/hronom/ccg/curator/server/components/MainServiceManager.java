@@ -99,29 +99,34 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
     public void joinRoom(JoinRoomRequest req, StreamObserver<RoomEventReply> responseObserver) {
         Player player = playersManager.getPlayer(req.getPlayerId());
         if (player != null) {
-            try {
-                Room room = roomsManager.getRoom(req.getRoomName(), req.getRoomPassword());
-                roomEventReplyMap.put(player, responseObserver);
-                mainManager.joinRoom(player, room);
+            if (!mainManager.isPlayerInRoom(player)) {
+                try {
+                    Room room = roomsManager.getRoom(req.getRoomName(), req.getRoomPassword());
+                    roomEventReplyMap.put(player, responseObserver);
+                    mainManager.joinRoom(player, room);
+                    RoomEventReply reply =
+                        RoomEventReply
+                            .newBuilder()
+                            .setJoinRoomReply(JoinRoomReply.newBuilder()
+                            .setCode(JoinRoomReply.Codes.JOINED))
+                            .build();
+                    responseObserver.onNext(reply);
+                } catch (RoomBadPasswordException exception) {
+                    RoomEventReply reply =
+                        RoomEventReply
+                            .newBuilder()
+                            .setJoinRoomReply(JoinRoomReply.newBuilder()
+                            .setCode(JoinRoomReply.Codes.BAD_PASSWORD))
+                            .build();
+                    responseObserver.onNext(reply);
+                    responseObserver.onCompleted();
+                }
+            } else {
                 RoomEventReply reply =
                     RoomEventReply
                         .newBuilder()
-                        .setJoinRoomReply(
-                            JoinRoomReply
-                                .newBuilder()
-                                .setCode(JoinRoomReply.Codes.JOINED)
-                        )
-                        .build();
-                responseObserver.onNext(reply);
-            } catch (RoomBadPasswordException exception) {
-                RoomEventReply reply =
-                    RoomEventReply
-                        .newBuilder()
-                        .setJoinRoomReply(
-                            JoinRoomReply
-                                .newBuilder()
-                                .setCode(JoinRoomReply.Codes.BAD_PASSWORD)
-                        )
+                        .setJoinRoomReply(JoinRoomReply.newBuilder()
+                        .setCode(JoinRoomReply.Codes.ALREADY_IN_ROOM))
                         .build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
@@ -205,7 +210,7 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
         }
     }
 
-    public void sendPlayerLeftRoom(Player sendToPlayer, Player whoEnter) {
+    public void sendPlayerLeftRoom(Player sendToPlayer, Player whoLeft) {
         StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
         if (responseObserver != null) {
             RoomEventReply reply =
@@ -214,7 +219,7 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
                     .setPlayerLeftRroomReply(
                         PlayerLeftRroomReply
                             .newBuilder()
-                            .setPlayerName(whoEnter.getName())
+                            .setPlayerName(whoLeft.getName())
                             .build()
                     )
                     .build();

@@ -35,6 +35,10 @@ public class MainManager {
         return playersManager.createPlayer(playerName).getId();
     }
 
+    public boolean isPlayerInRoom(Player player) {
+        return roomsByPlayerId.containsKey(player);
+    }
+
     public void joinRoom(Player player, Room room) {
         room.addPlayer(player);
         roomsByPlayerId.put(player, room);
