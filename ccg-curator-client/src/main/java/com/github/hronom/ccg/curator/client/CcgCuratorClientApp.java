@@ -19,7 +19,7 @@ import javafx.stage.Stage;
 public class CcgCuratorClientApp extends Application {
     private static final Logger logger = LogManager.getLogger();
 
-    private final String appTitle = "CCG organizer";
+    private final String appTitle = "CCG curator";
 
     @Override
     public void start(Stage primaryStage) throws Exception {
