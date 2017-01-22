@@ -2,8 +2,9 @@ package com.github.hronom.ccg.curator.server.components.business;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,11 @@ public class PlayersManager {
 
     private final ConcurrentHashMap<Long, Player> playersById = new ConcurrentHashMap<>();
 
-    public PlayersManager() throws Exception {
+    private final ApplicationContext context;
+
+    @Autowired
+    public PlayersManager(ApplicationContext contextArg) {
+        context = contextArg;
     }
 
     @PreDestroy
@@ -32,7 +37,7 @@ public class PlayersManager {
 
     public Player createPlayer(String playerName) {
         long id = playerIdGenerator.incrementAndGet();
-        Player player = player(id, playerName);
+        Player player = context.getBean(Player.class, id, playerName);
         playersById.put(id, player);
         return player;
     }
@@ -51,11 +56,5 @@ public class PlayersManager {
 
     public Collection<Player> getPlayers() {
         return playersById.values();
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    private Player player(long id, String name) {
-        return new Player(id, name);
     }
 }

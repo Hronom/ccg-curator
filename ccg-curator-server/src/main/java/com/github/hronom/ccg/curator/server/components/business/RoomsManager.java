@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +25,15 @@ public class RoomsManager {
     private final Object modificationLock = new Object();
     private final ConcurrentHashMap<String, Room> roomsByName = new ConcurrentHashMap<>();
 
+    private final ApplicationContext context;
+
+    private final MainServiceManager mainServiceManager;
+
     @Autowired
-    private MainServiceManager mainServiceManager;
+    public RoomsManager(ApplicationContext contextArg, MainServiceManager mainServiceManagerArg) {
+        context = contextArg;
+        mainServiceManager = mainServiceManagerArg;
+    }
 
     @PreDestroy
     public void cleanUp() throws Exception {
@@ -36,7 +43,7 @@ public class RoomsManager {
         synchronized (modificationLock) {
             Room room = roomsByName.get(name);
             if (room == null) {
-                room = room(name, password);
+                room = context.getBean(Room.class, mainServiceManager, name, password);
                 roomsByName.put(name, room);
             } else {
                 if (!Objects.equals(password, room.getPassword())) {
@@ -59,11 +66,5 @@ public class RoomsManager {
                 }
             });
         }
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    private Room room(String name, String password) {
-        return new Room(mainServiceManager, name, password);
     }
 }
