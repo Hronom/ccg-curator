@@ -13,6 +13,7 @@ import java.util.ResourceBundle;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
@@ -36,6 +37,8 @@ public class CcgCuratorClientApp extends Application {
         Scene scene = new Scene(gridPane, 1024, 768);
 
         primaryStage.setTitle(appTitle);
+        primaryStage.getIcons().add(new Image(this.getClass().getResourceAsStream("1485118743_Board-Games-grey.png")));
+        primaryStage.getIcons().add(new Image(this.getClass().getResourceAsStream("1485118759_Board-Games-grey.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
     }
