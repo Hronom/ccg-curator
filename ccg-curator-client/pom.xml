@@ -125,7 +125,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
                             <classpathLayoutType>simple</classpathLayoutType>
-                            <mainClass>com.github.hronom.ccg.curator.client.App</mainClass>
+                            <mainClass>com.github.hronom.ccg.curator.client.CcgCuratorClientApp</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Version>${project.version}</Version>
@@ -145,11 +145,80 @@
                                 <include>lib/</include>
                                 <include>logs/</include>
                                 <include>*.jar</include>
+                                <include>*.exe</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                        <fileset>
+                            <directory>${project.basedir}/dist</directory>
+                            <includes>
+                                <include>*.*</include>
                             </includes>
                             <followSymlinks>false</followSymlinks>
                         </fileset>
                     </filesets>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>1.7.15</version>
+                <executions>
+                    <execution>
+                        <id>l4j-clui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <outfile>bin/${project.artifactId}.exe</outfile>
+                            <jar>${project.artifactId}-${project.version}.jar</jar>
+                            <dontWrapJar>true</dontWrapJar>
+                            <errTitle>TODO</errTitle>
+                            <icon>src/main/icons/1485116232_Board-Games-grey.ico</icon>
+                            <classPath>
+                                <mainClass>com.github.hronom.ccg.curator.client.CcgCuratorClientApp</mainClass>
+                                <addDependencies>true</addDependencies>
+                                <preCp>anything</preCp>
+                            </classPath>
+                            <jre>
+                                <minVersion>1.7.0</minVersion>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>${project.version}.0</fileVersion>
+                                <txtFileVersion>${project.version}.0</txtFileVersion>
+                                <fileDescription>TODO</fileDescription>
+                                <copyright>hronom@gmail.com</copyright>
+                                <productVersion>${project.version}.0</productVersion>
+                                <txtProductVersion>${project.version}.0</txtProductVersion>
+                                <companyName>TODO</companyName>
+                                <productName>Poker Helper</productName>
+                                <internalName>TODO</internalName>
+                                <originalFilename>${project.artifactId}.exe</originalFilename>
+                            </versionInfo>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/zip.xml</descriptor>
+                    </descriptors>
+                    <outputDirectory>${project.basedir}/dist</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
