@@ -41,8 +41,9 @@ message RoomEventReply {
         JoinRoomReply joinRoomReply = 1;
         PlayerEnterRoomReply playerEnterRoomReply = 2;
         PlayerLeftRroomReply playerLeftRroomReply = 3;
-        CardRevealedReply cardRevealedReply = 4;
-        DiceThrowedReply diceThrowedReply = 5;
+        CardSubmittedReply cardSubmittedReply = 4;
+        CardRevealedReply cardRevealedReply = 5;
+        DiceThrowedReply diceThrowedReply = 6;
     }
 }
 
@@ -61,6 +62,10 @@ message PlayerEnterRoomReply {
 }
 
 message PlayerLeftRroomReply {
+    string playerName = 1;
+}
+
+message CardSubmittedReply {
     string playerName = 1;
 }
 

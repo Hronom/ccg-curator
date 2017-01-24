@@ -1,6 +1,7 @@
 package com.github.hronom.ccg.curator.server.components;
 
 import com.github.hronom.ccg.curator.CardRevealedReply;
+import com.github.hronom.ccg.curator.CardSubmittedReply;
 import com.github.hronom.ccg.curator.CcgCuratorGrpc;
 import com.github.hronom.ccg.curator.DiceThrowedReply;
 import com.github.hronom.ccg.curator.JoinRoomReply;
@@ -220,6 +221,23 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
                         PlayerLeftRroomReply
                             .newBuilder()
                             .setPlayerName(whoLeft.getName())
+                            .build()
+                    )
+                    .build();
+            responseObserver.onNext(reply);
+        }
+    }
+
+    public void sendPlayerSubmitCard(Player sendToPlayer, Player whoSubmitCard) {
+        StreamObserver<RoomEventReply> responseObserver = roomEventReplyMap.get(sendToPlayer);
+        if (responseObserver != null) {
+            RoomEventReply reply =
+                RoomEventReply
+                    .newBuilder()
+                    .setCardSubmittedReply(
+                        CardSubmittedReply
+                            .newBuilder()
+                            .setPlayerName(whoSubmitCard.getName())
                             .build()
                     )
                     .build();

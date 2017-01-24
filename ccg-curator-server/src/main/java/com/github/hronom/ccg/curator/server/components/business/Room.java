@@ -81,7 +81,10 @@ public class Room {
     public void submitCard(Player player, String cardName) throws CardAlreadySubmittedException {
         if (!submitedCards.containsKey(player)) {
             submitedCards.put(player, cardName);
-            checkIsAllSubmitted();
+            sendPlayerSubmitCard(player);
+            if (isAllPlayersSubmitCards()) {
+                sendSubmittedCards();
+            }
         } else {
             throw new CardAlreadySubmittedException();
         }
@@ -95,21 +98,29 @@ public class Room {
         }
     }
 
-    private void checkIsAllSubmitted() {
-        // Check is all players submit the card.
-        for (Player player : players) {
-            if (!submitedCards.containsKey(player)) {
-                return;
+    private void sendPlayerSubmitCard(Player whoSubmitCard) {
+        for (Player playerToSend : players) {
+            if (playerToSend != whoSubmitCard) {
+                mainServiceManager.sendPlayerSubmitCard(playerToSend, whoSubmitCard);
             }
         }
+    }
 
-        // Send notifications
+    private boolean isAllPlayersSubmitCards() {
+        for (Player playerInRoom : players) {
+            if (!submitedCards.containsKey(playerInRoom)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void sendSubmittedCards() {
         for (Map.Entry<Player, String> entry : submitedCards.entrySet()) {
             for (Player playerToSend : players) {
                 mainServiceManager.sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
             }
         }
-
         submitedCards.clear();
     }
 }

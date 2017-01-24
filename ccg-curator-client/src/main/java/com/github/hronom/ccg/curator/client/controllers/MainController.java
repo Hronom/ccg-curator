@@ -92,75 +92,85 @@ public class MainController implements Initializable {
         bLogin.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                ManagedChannelBuilder<?> channelBuilder =
-                    ManagedChannelBuilder.forTarget(tfServerAddress.getText())
+                try {
+                    ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(tfServerAddress.getText())
                         // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                         // needing certificates.
                         .usePlaintext(true);
-                channel = channelBuilder.build();
-                blockingStub = CcgCuratorGrpc.newBlockingStub(channel);
-                stub = CcgCuratorGrpc.newStub(channel);
+                    channel = channelBuilder.build();
+                    blockingStub = CcgCuratorGrpc.newBlockingStub(channel);
+                    stub = CcgCuratorGrpc.newStub(channel);
 
-                tfServerAddress.setDisable(true);
-                tfPlayerName.setDisable(true);
-                bLogin.setDisable(true);
+                    tfServerAddress.setDisable(true);
+                    tfPlayerName.setDisable(true);
+                    bLogin.setDisable(true);
 
-                loginStreamObserver = new StreamObserver<LoginReply>() {
-                    @Override
-                    public void onNext(LoginReply value) {
-                        playerId.set(value.getPlayerId());
-                        logged.set(true);
-                        println("playerLogged", value.getPlayerId());
-                        tfServerAddress.setDisable(true);
-                        tfPlayerName.setDisable(true);
-                        bLogin.setDisable(true);
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        logger.error("Error", t);
-                        logged.set(false);
-                        joinedRoom.set(false);
-                        if (t instanceof StatusRuntimeException) {
-                            println(((StatusRuntimeException) t).getStatus().toString());
+                    loginStreamObserver = new StreamObserver<LoginReply>() {
+                        @Override
+                        public void onNext(LoginReply value) {
+                            playerId.set(value.getPlayerId());
+                            logged.set(true);
+                            println("playerLogged", value.getPlayerId());
+                            tfServerAddress.setDisable(true);
+                            tfPlayerName.setDisable(true);
+                            bLogin.setDisable(true);
                         }
-                        tfServerAddress.setDisable(false);
-                        tfPlayerName.setDisable(false);
-                        bLogin.setDisable(false);
-                        tfRoomName.setDisable(false);
-                        tfRoomPassword.setDisable(false);
-                        bJoinRoom.setDisable(false);
-                        tfCardName.setDisable(false);
-                        bSubmitCard.setDisable(false);
-                        tfDiceValues.setDisable(false);
-                        bThrowDice.setDisable(false);
-                    }
 
-                    @Override
-                    public void onCompleted() {
-                        logged.set(false);
-                        joinedRoom.set(false);
-                        println("loggedSessionComplete");
-                        tfServerAddress.setDisable(false);
-                        tfPlayerName.setDisable(false);
-                        bLogin.setDisable(false);
-                        tfRoomName.setDisable(false);
-                        tfRoomPassword.setDisable(false);
-                        bJoinRoom.setDisable(false);
-                        tfCardName.setDisable(false);
-                        bSubmitCard.setDisable(false);
-                        tfDiceValues.setDisable(false);
-                        bThrowDice.setDisable(false);
+                        @Override
+                        public void onError(Throwable t) {
+                            logger.error("Error", t);
+                            logged.set(false);
+                            joinedRoom.set(false);
+                            if (t instanceof StatusRuntimeException) {
+                                println(((StatusRuntimeException) t).getStatus().toString());
+                            }
+                            tfServerAddress.setDisable(false);
+                            tfPlayerName.setDisable(false);
+                            bLogin.setDisable(false);
+                            tfRoomName.setDisable(false);
+                            tfRoomPassword.setDisable(false);
+                            bJoinRoom.setDisable(false);
+                            tfCardName.setDisable(false);
+                            bSubmitCard.setDisable(false);
+                            tfDiceValues.setDisable(false);
+                            bThrowDice.setDisable(false);
+                        }
 
-                    }
-                };
-                StreamObserver<LoginRequest> requests = stub.login(loginStreamObserver);
-                LoginRequest request =
-                    LoginRequest
-                        .newBuilder()
-                        .setPlayerName(tfPlayerName.getText())
-                        .build();
-                requests.onNext(request);
+                        @Override
+                        public void onCompleted() {
+                            logged.set(false);
+                            joinedRoom.set(false);
+                            println("loggedSessionComplete");
+                            tfServerAddress.setDisable(false);
+                            tfPlayerName.setDisable(false);
+                            bLogin.setDisable(false);
+                            tfRoomName.setDisable(false);
+                            tfRoomPassword.setDisable(false);
+                            bJoinRoom.setDisable(false);
+                            tfCardName.setDisable(false);
+                            bSubmitCard.setDisable(false);
+                            tfDiceValues.setDisable(false);
+                            bThrowDice.setDisable(false);
+                        }
+                    };
+                    StreamObserver<LoginRequest> requests = stub.login(loginStreamObserver);
+                    LoginRequest request = LoginRequest.newBuilder()
+                        .setPlayerName(tfPlayerName.getText()).build();
+                    requests.onNext(request);
+                } catch (Exception exception) {
+                    logger.error("Error", exception);
+                    println("Error", exception.getMessage());
+                    tfServerAddress.setDisable(false);
+                    tfPlayerName.setDisable(false);
+                    bLogin.setDisable(false);
+                    tfRoomName.setDisable(false);
+                    tfRoomPassword.setDisable(false);
+                    bJoinRoom.setDisable(false);
+                    tfCardName.setDisable(false);
+                    bSubmitCard.setDisable(false);
+                    tfDiceValues.setDisable(false);
+                    bThrowDice.setDisable(false);
+                }
             }
         });
 
@@ -223,6 +233,14 @@ public class MainController implements Initializable {
                                     "playerLeftRoom",
                                     value.getPlayerLeftRroomReply().getPlayerName()
                                 );
+                            } else if (value.getValueCase() ==
+                                       RoomEventReply.ValueCase.CARDSUBMITTEDREPLY) {
+                                println(
+                                    "cardSubmitted",
+                                    value.getCardSubmittedReply().getPlayerName()
+                                );
+                                tfCardName.setDisable(false);
+                                bSubmitCard.setDisable(false);
                             } else if (value.getValueCase() ==
                                        RoomEventReply.ValueCase.CARDREVEALEDREPLY) {
                                 println(
