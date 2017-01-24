@@ -12,7 +12,7 @@ WORKDIR /
 
 # Copy files
 RUN mkdir ccg-curator-server
-COPY bin/ccg-curator-server-1.0.0.jar /ccg-curator-server
+COPY bin/ccg-curator-server-1.1.0.jar /ccg-curator-server
 RUN mkdir ccg-curator-server/lib
 COPY bin/lib /ccg-curator-server/lib
 COPY docker /ccg-curator-server

@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ccg-curator</artifactId>
         <groupId>com.github.hronom</groupId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.github.hronom</groupId>
             <artifactId>ccg-curator-common</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
 
         <!-- Spring -->
