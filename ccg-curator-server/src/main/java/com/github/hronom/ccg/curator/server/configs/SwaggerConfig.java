@@ -29,7 +29,7 @@ public class SwaggerConfig {
         return new ApiInfo(
             "CCG Curator server",
             "CCG Curator server",
-            "API 1.0.0",
+            "API 1.1.0",
             "",
             new Contact("Hronom", "", "hronom@gmail.com"),
             "License",

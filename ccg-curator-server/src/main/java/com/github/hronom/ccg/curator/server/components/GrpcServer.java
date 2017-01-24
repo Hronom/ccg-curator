@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
@@ -16,15 +17,15 @@ import io.grpc.ServerBuilder;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class ServerComponent {
+public class GrpcServer {
     private static final Logger logger = LogManager.getLogger();
 
     private final int serverPort = 50051;
     private Server server;
 
     @Autowired
-    public ServerComponent(MainServiceManager mainServiceManager) throws Exception {
-        start(mainServiceManager);
+    public GrpcServer(CcgCuratorService ccgCuratorService) throws Exception {
+        start(ccgCuratorService);
     }
 
     @PreDestroy
@@ -32,10 +33,10 @@ public class ServerComponent {
         stop();
     }
 
-    private void start(MainServiceManager mainServiceManager) throws IOException {
+    private void start(CcgCuratorService ccgCuratorService) throws IOException {
         server = ServerBuilder
             .forPort(serverPort)
-            .addService(mainServiceManager)
+            .addService(ccgCuratorService)
             .build()
             .start();
         logger.info("Server started, listening on " + serverPort);

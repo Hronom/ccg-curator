@@ -1,6 +1,6 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
-import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+import com.github.hronom.ccg.curator.server.components.CcgCuratorService;
 import com.github.hronom.ccg.curator.server.components.business.exception.CardAlreadySubmittedException;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,19 +29,18 @@ public class Room {
 
     private final ConcurrentHashMap<Player, String> submitedCards = new ConcurrentHashMap<>();
 
-    private final MainServiceManager mainServiceManager;
+    private final CcgCuratorService ccgCuratorService;
 
     private final Random random = new Random();
 
-    public Room(MainServiceManager mainServiceManagerArg, String nameArg, String passwordArg) {
-        mainServiceManager = mainServiceManagerArg;
+    public Room(CcgCuratorService ccgCuratorServiceArg, String nameArg, String passwordArg) {
+        ccgCuratorService = ccgCuratorServiceArg;
         name = nameArg;
         password = passwordArg;
     }
 
     @PreDestroy
     public void cleanUp() throws Exception {
-        System.out.println("destroyed");
     }
 
     public String getName() {
@@ -57,12 +56,12 @@ public class Room {
 
         for (Player playerInRooom : players) {
             if (player != playerInRooom) {
-                mainServiceManager.sendPlayerEnterRoom(player, playerInRooom);
+                ccgCuratorService.sendPlayerEnterRoom(player, playerInRooom);
             }
         }
         for (Player playerToSend : players) {
             if (playerToSend != player) {
-                mainServiceManager.sendPlayerEnterRoom(playerToSend, player);
+                ccgCuratorService.sendPlayerEnterRoom(playerToSend, player);
             }
         }
     }
@@ -71,7 +70,7 @@ public class Room {
         players.remove(player);
 
         for (Player playerToSend : players) {
-            mainServiceManager.sendPlayerLeftRoom(playerToSend, player);
+            ccgCuratorService.sendPlayerLeftRoom(playerToSend, player);
         }
 
         submitedCards.remove(player);
@@ -101,14 +100,14 @@ public class Room {
         int randomPos = random.nextInt(diceValues.length);
         // Send notifications
         for (Player playerToSend : players) {
-            mainServiceManager.sendThrowDice(playerToSend, player, diceValues[randomPos]);
+            ccgCuratorService.sendThrowDice(playerToSend, player, diceValues[randomPos]);
         }
     }
 
     private void sendPlayerSubmitCard(Player whoSubmitCard) {
         for (Player playerToSend : players) {
             if (playerToSend != whoSubmitCard) {
-                mainServiceManager.sendPlayerSubmitCard(playerToSend, whoSubmitCard);
+                ccgCuratorService.sendPlayerSubmitCard(playerToSend, whoSubmitCard);
             }
         }
     }
@@ -125,7 +124,7 @@ public class Room {
     private void sendSubmittedCards() {
         for (Map.Entry<Player, String> entry : submitedCards.entrySet()) {
             for (Player playerToSend : players) {
-                mainServiceManager.sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
+                ccgCuratorService.sendShowdownCard(playerToSend, entry.getKey(), entry.getValue());
             }
         }
         submitedCards.clear();

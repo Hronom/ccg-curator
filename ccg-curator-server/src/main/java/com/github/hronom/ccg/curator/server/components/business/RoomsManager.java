@@ -1,6 +1,6 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
-import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+import com.github.hronom.ccg.curator.server.components.CcgCuratorService;
 import com.github.hronom.ccg.curator.server.components.business.exception.RoomBadPasswordException;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,12 +28,12 @@ public class RoomsManager {
 
     private final ApplicationContext context;
 
-    private final MainServiceManager mainServiceManager;
+    private final CcgCuratorService ccgCuratorService;
 
     @Autowired
-    public RoomsManager(ApplicationContext contextArg, MainServiceManager mainServiceManagerArg) {
+    public RoomsManager(ApplicationContext contextArg, CcgCuratorService ccgCuratorServiceArg) {
         context = contextArg;
-        mainServiceManager = mainServiceManagerArg;
+        ccgCuratorService = ccgCuratorServiceArg;
     }
 
     @PreDestroy
@@ -44,7 +44,7 @@ public class RoomsManager {
         synchronized (modificationLock) {
             Room room = roomsByName.get(name);
             if (room == null) {
-                room = context.getBean(Room.class, mainServiceManager, name, password);
+                room = context.getBean(Room.class, ccgCuratorService, name, password);
                 roomsByName.put(name, room);
             } else {
                 if (!Objects.equals(password, room.getPassword())) {

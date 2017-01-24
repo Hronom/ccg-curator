@@ -19,7 +19,8 @@ public class MainManager {
 
     private final AtomicLong playerIdGenerator = new AtomicLong();
 
-    private ConcurrentHashMap<Player, Room> roomsByPlayerId = new ConcurrentHashMap<>();
+    private final Object modificationLock = new Object();
+    private ConcurrentHashMap<Player, Room> roomsByPlayer = new ConcurrentHashMap<>();
 
     @Autowired
     private PlayersManager playersManager;
@@ -36,31 +37,37 @@ public class MainManager {
     }
 
     public boolean isPlayerInRoom(Player player) {
-        return roomsByPlayerId.containsKey(player);
+        return roomsByPlayer.containsKey(player);
     }
 
     public void joinRoom(Player player, Room room) {
-        room.addPlayer(player);
-        roomsByPlayerId.put(player, room);
+        synchronized (modificationLock) {
+            room.addPlayer(player);
+            roomsByPlayer.put(player, room);
+        }
     }
 
     public void leaveRoom(Player player, Room room) {
-        room.removePlayer(player);
-        roomsByPlayerId.remove(player, room);
+        synchronized (modificationLock) {
+            room.removePlayer(player);
+            roomsByPlayer.remove(player, room);
+        }
     }
 
     public void leaveRooms(Player player) {
-        Room room = roomsByPlayerId.get(player);
-        if (room != null) {
-            room.removePlayer(player);
-            roomsByPlayerId.remove(player, room);
-            if (room.getPlayers().isEmpty()) {
-                roomsManager.removeRoom(room);
+        synchronized (modificationLock) {
+            Room room = roomsByPlayer.get(player);
+            if (room != null) {
+                room.removePlayer(player);
+                roomsByPlayer.remove(player, room);
+                if (room.getPlayers().isEmpty()) {
+                    roomsManager.removeRoom(room);
+                }
             }
         }
     }
 
     public Room getRoom(Player player) {
-        return roomsByPlayerId.get(player);
+        return roomsByPlayer.get(player);
     }
 }

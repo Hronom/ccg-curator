@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,7 +26,7 @@ public class PlayersManager {
 
     private final AtomicLong playerIdGenerator = new AtomicLong();
 
-    private final Object playerModificationLock = new Object();
+    private final Object modificationLock = new Object();
     private final ConcurrentHashMap<String, Player> playersByName = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Player> playersById = new ConcurrentHashMap<>();
 
@@ -48,7 +49,7 @@ public class PlayersManager {
             throw new PlayerBadNameException();
         }
 
-        synchronized (playerModificationLock) {
+        synchronized (modificationLock) {
             if (!playersByName.containsKey(playerName)) {
                 long id = playerIdGenerator.incrementAndGet();
                 Player player = context.getBean(Player.class, id, playerName);
@@ -62,7 +63,7 @@ public class PlayersManager {
     }
 
     public void removePlayer(Player player) {
-        synchronized (playerModificationLock) {
+        synchronized (modificationLock) {
             playersById.forEach((idArg, playerArg) -> {
                 if (Objects.equals(player, playerArg)) {
                     playersByName.remove(player.getName());
@@ -77,6 +78,6 @@ public class PlayersManager {
     }
 
     public Collection<Player> getPlayers() {
-        return playersById.values();
+        return Collections.unmodifiableCollection(playersById.values());
     }
 }

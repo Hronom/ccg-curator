@@ -15,22 +15,22 @@ import com.github.hronom.ccg.curator.SubmitCardReply;
 import com.github.hronom.ccg.curator.SubmitCardRequest;
 import com.github.hronom.ccg.curator.ThrowDiceReply;
 import com.github.hronom.ccg.curator.ThrowDiceRequest;
-import com.github.hronom.ccg.curator.server.components.business.exception.CardAlreadySubmittedException;
 import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
 import com.github.hronom.ccg.curator.server.components.business.Room;
+import com.github.hronom.ccg.curator.server.components.business.RoomsManager;
+import com.github.hronom.ccg.curator.server.components.business.exception.CardAlreadySubmittedException;
 import com.github.hronom.ccg.curator.server.components.business.exception.PlayerAlreadyLoggedException;
 import com.github.hronom.ccg.curator.server.components.business.exception.PlayerBadNameException;
 import com.github.hronom.ccg.curator.server.components.business.exception.RoomBadPasswordException;
-import com.github.hronom.ccg.curator.server.components.business.RoomsManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,9 +40,9 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 
-@Component
+@Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
+public class CcgCuratorService extends CcgCuratorGrpc.CcgCuratorImplBase {
     private static final Logger logger = LogManager.getLogger();
 
     private final ConcurrentHashMap<Player, StreamObserver<RoomEventReply>>
