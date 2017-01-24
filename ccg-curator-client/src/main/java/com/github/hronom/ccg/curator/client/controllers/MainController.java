@@ -92,6 +92,15 @@ public class MainController implements Initializable {
         bLogin.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                ManagedChannelBuilder<?> channelBuilder =
+                    ManagedChannelBuilder.forTarget(tfServerAddress.getText())
+                        // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
+                        // needing certificates.
+                        .usePlaintext(true);
+                channel = channelBuilder.build();
+                blockingStub = CcgCuratorGrpc.newBlockingStub(channel);
+                stub = CcgCuratorGrpc.newStub(channel);
+
                 tfServerAddress.setDisable(true);
                 tfPlayerName.setDisable(true);
                 bLogin.setDisable(true);
@@ -318,15 +327,6 @@ public class MainController implements Initializable {
                 }
             }
         });
-
-        ManagedChannelBuilder<?> channelBuilder =
-            ManagedChannelBuilder.forTarget(tfServerAddress.getText())
-            // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
-            // needing certificates.
-            .usePlaintext(true);
-        channel = channelBuilder.build();
-        blockingStub = CcgCuratorGrpc.newBlockingStub(channel);
-        stub = CcgCuratorGrpc.newStub(channel);
     }
 
     private void println(String key, Object... args) {
