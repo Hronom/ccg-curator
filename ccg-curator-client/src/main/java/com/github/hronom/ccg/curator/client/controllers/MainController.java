@@ -108,12 +108,27 @@ public class MainController implements Initializable {
                     loginStreamObserver = new StreamObserver<LoginReply>() {
                         @Override
                         public void onNext(LoginReply value) {
-                            playerId.set(value.getPlayerId());
-                            logged.set(true);
-                            println("playerLogged", value.getPlayerId());
-                            tfServerAddress.setDisable(true);
-                            tfPlayerName.setDisable(true);
-                            bLogin.setDisable(true);
+                            if (value.getValueCase() == LoginReply.ValueCase.PLAYERID) {
+                                playerId.set(value.getPlayerId());
+                                logged.set(true);
+                                println("playerLogged", value.getPlayerId());
+                                tfServerAddress.setDisable(true);
+                                tfPlayerName.setDisable(true);
+                                bLogin.setDisable(true);
+                            } else if (value.getValueCase() == LoginReply.ValueCase.ERROR) {
+                                LoginReply.Errors error = value.getError();
+                                if (error == LoginReply.Errors.PLAYER_BAD_NAME) {
+                                    println("playerBadName");
+                                    tfServerAddress.setDisable(true);
+                                    tfPlayerName.setDisable(true);
+                                    bLogin.setDisable(true);
+                                } else if (error == LoginReply.Errors.PLAYER_ALREADY_LOGGED) {
+                                    println("playerAlreadyLogged");
+                                    tfServerAddress.setDisable(true);
+                                    tfPlayerName.setDisable(true);
+                                    bLogin.setDisable(true);
+                                }
+                            }
                         }
 
                         @Override

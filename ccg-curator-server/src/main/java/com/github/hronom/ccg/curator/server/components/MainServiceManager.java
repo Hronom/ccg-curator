@@ -15,12 +15,14 @@ import com.github.hronom.ccg.curator.SubmitCardReply;
 import com.github.hronom.ccg.curator.SubmitCardRequest;
 import com.github.hronom.ccg.curator.ThrowDiceReply;
 import com.github.hronom.ccg.curator.ThrowDiceRequest;
-import com.github.hronom.ccg.curator.server.components.business.CardAlreadySubmittedException;
+import com.github.hronom.ccg.curator.server.components.business.exception.CardAlreadySubmittedException;
 import com.github.hronom.ccg.curator.server.components.business.MainManager;
 import com.github.hronom.ccg.curator.server.components.business.Player;
 import com.github.hronom.ccg.curator.server.components.business.PlayersManager;
 import com.github.hronom.ccg.curator.server.components.business.Room;
-import com.github.hronom.ccg.curator.server.components.business.RoomBadPasswordException;
+import com.github.hronom.ccg.curator.server.components.business.exception.PlayerAlreadyLoggedException;
+import com.github.hronom.ccg.curator.server.components.business.exception.PlayerBadNameException;
+import com.github.hronom.ccg.curator.server.components.business.exception.RoomBadPasswordException;
 import com.github.hronom.ccg.curator.server.components.business.RoomsManager;
 
 import org.apache.logging.log4j.LogManager;
@@ -70,9 +72,39 @@ public class MainServiceManager extends CcgCuratorGrpc.CcgCuratorImplBase {
 
             @Override
             public void onNext(LoginRequest value) {
-                player = playersManager.createPlayer(value.getPlayerName());
-                LoginReply loginReply = LoginReply.newBuilder().setPlayerId(player.getId()).build();
-                responseObserver.onNext(loginReply);
+                try {
+                    player = playersManager.createPlayer(value.getPlayerName());
+                    LoginReply loginReply =
+                        LoginReply
+                            .newBuilder()
+                            .setPlayerId(player.getId())
+                            .build();
+                    responseObserver.onNext(loginReply);
+                } catch (PlayerBadNameException exception) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Error", exception);
+                    }
+                    LoginReply loginReply =
+                        LoginReply
+                            .newBuilder()
+                            .setError(LoginReply.Errors.PLAYER_BAD_NAME)
+                            .build();
+                    responseObserver.onNext(loginReply);
+                    responseObserver.onCompleted();
+                } catch (PlayerAlreadyLoggedException exception) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Error", exception);
+                    }
+                    exception.printStackTrace();
+                    exception.printStackTrace();
+                    LoginReply loginReply =
+                        LoginReply
+                            .newBuilder()
+                            .setError(LoginReply.Errors.PLAYER_ALREADY_LOGGED)
+                            .build();
+                    responseObserver.onNext(loginReply);
+                    responseObserver.onCompleted();
+                }
             }
 
             @Override

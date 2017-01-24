@@ -1,5 +1,8 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
+import com.github.hronom.ccg.curator.server.components.business.exception.PlayerAlreadyLoggedException;
+import com.github.hronom.ccg.curator.server.components.business.exception.PlayerBadNameException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,8 @@ public class PlayersManager {
 
     private final AtomicLong playerIdGenerator = new AtomicLong();
 
+    private final Object playerModificationLock = new Object();
+    private final ConcurrentHashMap<String, Player> playersByName = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Player> playersById = new ConcurrentHashMap<>();
 
     private final ApplicationContext context;
@@ -35,19 +40,36 @@ public class PlayersManager {
     public void cleanUp() throws Exception {
     }
 
-    public Player createPlayer(String playerName) {
-        long id = playerIdGenerator.incrementAndGet();
-        Player player = context.getBean(Player.class, id, playerName);
-        playersById.put(id, player);
-        return player;
+    public Player createPlayer(String playerName)
+        throws PlayerAlreadyLoggedException, PlayerBadNameException {
+        if (playerName == null) {
+            throw new PlayerBadNameException();
+        } else if(playerName.isEmpty()) {
+            throw new PlayerBadNameException();
+        }
+
+        synchronized (playerModificationLock) {
+            if (!playersByName.containsKey(playerName)) {
+                long id = playerIdGenerator.incrementAndGet();
+                Player player = context.getBean(Player.class, id, playerName);
+                playersByName.put(playerName, player);
+                playersById.put(id, player);
+                return player;
+            } else {
+                throw new PlayerAlreadyLoggedException();
+            }
+        }
     }
 
     public void removePlayer(Player player) {
-        playersById.forEach((idArg, playerArg) -> {
-            if (Objects.equals(player, playerArg)) {
-                playersById.remove(idArg);
-            }
-        });
+        synchronized (playerModificationLock) {
+            playersById.forEach((idArg, playerArg) -> {
+                if (Objects.equals(player, playerArg)) {
+                    playersByName.remove(player.getName());
+                    playersById.remove(idArg);
+                }
+            });
+        }
     }
 
     public Player getPlayer(long id) {

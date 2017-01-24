@@ -1,6 +1,7 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
 import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+import com.github.hronom.ccg.curator.server.components.business.exception.RoomBadPasswordException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

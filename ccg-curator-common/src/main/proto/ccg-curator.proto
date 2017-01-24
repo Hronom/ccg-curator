@@ -27,7 +27,14 @@ message LoginRequest {
 }
 
 message LoginReply {
-    int64 playerId = 1;
+    enum Errors {
+        PLAYER_ALREADY_LOGGED = 0;
+        PLAYER_BAD_NAME = 1;
+    }
+    oneof value {
+        int64 playerId = 1;
+        Errors error = 2;
+    }
 }
 
 message JoinRoomRequest {

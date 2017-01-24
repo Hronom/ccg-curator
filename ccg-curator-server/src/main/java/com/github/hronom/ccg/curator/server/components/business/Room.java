@@ -1,6 +1,7 @@
 package com.github.hronom.ccg.curator.server.components.business;
 
 import com.github.hronom.ccg.curator.server.components.MainServiceManager;
+import com.github.hronom.ccg.curator.server.components.business.exception.CardAlreadySubmittedException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +54,7 @@ public class Room {
 
     public void addPlayer(Player player) {
         players.add(player);
-        // Send notifications
+
         for (Player playerInRooom : players) {
             if (player != playerInRooom) {
                 mainServiceManager.sendPlayerEnterRoom(player, playerInRooom);
@@ -68,9 +69,15 @@ public class Room {
 
     public void removePlayer(Player player) {
         players.remove(player);
-        // Send notifications
+
         for (Player playerToSend : players) {
             mainServiceManager.sendPlayerLeftRoom(playerToSend, player);
+        }
+
+        submitedCards.remove(player);
+
+        if (isAllPlayersSubmitCards()) {
+            sendSubmittedCards();
         }
     }
 
