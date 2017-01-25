@@ -26,15 +26,12 @@ public class RoomsManager {
     private final Object modificationLock = new Object();
     private final ConcurrentHashMap<String, Room> roomsByName = new ConcurrentHashMap<>();
 
-    private final ApplicationContext context;
-
-    private final CcgCuratorService ccgCuratorService;
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
-    public RoomsManager(ApplicationContext contextArg, CcgCuratorService ccgCuratorServiceArg) {
-        context = contextArg;
-        ccgCuratorService = ccgCuratorServiceArg;
-    }
+    private CcgCuratorService ccgCuratorService;
+
 
     @PreDestroy
     public void cleanUp() throws Exception {
