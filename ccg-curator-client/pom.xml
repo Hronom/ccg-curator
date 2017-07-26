@@ -54,7 +54,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.8.0-alpha1</version>
+            <version>1.8.0-alpha2</version>
         </dependency>
     </dependencies>
 

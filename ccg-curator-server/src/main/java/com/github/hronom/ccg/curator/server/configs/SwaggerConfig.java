@@ -3,6 +3,7 @@ package com.github.hronom.ccg.curator.server.configs;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -26,14 +27,10 @@ public class SwaggerConfig {
     }
 
     private ApiInfo apiInfo() {
-        return new ApiInfo(
-            "CCG Curator server",
-            "CCG Curator server",
-            "API 1.1.0",
-            "",
-            new Contact("Hronom", "", "hronom@gmail.com"),
-            "License",
-            ""
-        );
+        return new ApiInfoBuilder()
+            .title("CCG Curator server")
+            .contact(new Contact("Hronom", "", "hronom@gmail.com"))
+            .version("1.1.0")
+            .build();
     }
 }
